@@ -4,6 +4,7 @@ Orquestador - Coordina todos los agentes del sistema
 
 from agents.scraper_agent import ScraperAgent
 from agents.analyzer_agent import AnalyzerAgent
+from agents.cv_optimizer_agent import CVOptimizerAgent
 from typing import List, Dict
 
 class JobAssistantOrchestrator:
@@ -11,83 +12,69 @@ class JobAssistantOrchestrator:
         print("🤖 Inicializando Job Assistant con arquitectura multi-agente...")
         self.scraper = ScraperAgent()
         self.analyzer = AnalyzerAgent()
-        print("✅ Agentes cargados: Scraper, Analyzer")
+        self.cv_optimizer = CVOptimizerAgent()
+        print("✅ Agentes cargados: Scraper, Analyzer, CV Optimizer")
     
-    def search_and_analyze(self, keywords: str, location: str = "Buenos Aires") -> Dict:
+    def full_pipeline(self, keywords: str, location: str = "Buenos Aires") -> Dict:
         """
-        Flujo completo: busca trabajos y los analiza
-        
-        Args:
-            keywords: Términos de búsqueda
-            location: Ubicación
-            
-        Returns:
-            Diccionario con resultados y análisis
+        Pipeline completo: busca, analiza y optimiza CV
         """
         print(f"\n{'='*60}")
-        print(f"🎯 BÚSQUEDA: {keywords} en {location}")
+        print(f"🎯 BÚSQUEDA COMPLETA: {keywords} en {location}")
         print(f"{'='*60}\n")
         
-        # PASO 1: Scraper busca trabajos
-        print("📍 PASO 1: Buscando ofertas laborales...")
+        # PASO 1: Buscar trabajos
+        print("📍 PASO 1: Buscando ofertas...")
         jobs = self.scraper.search_jobs(keywords, location)
         
         if not jobs:
-            print("❌ No se encontraron ofertas")
-            return {"jobs": [], "analyses": []}
+            return {"error": "No se encontraron ofertas"}
         
-        # PASO 2: Analyzer analiza cada trabajo
+        # PASO 2: Analizar trabajos
         print(f"\n📊 PASO 2: Analizando {len(jobs)} ofertas...")
         analyses = self.analyzer.analyze_multiple(jobs)
         
-        # PASO 3: Ordenar por match score
+        # PASO 3: Optimizar CV para el mejor match
         analyses_sorted = sorted(analyses, key=lambda x: x['match_score'], reverse=True)
+        best_match = analyses_sorted[0]
         
-        print(f"\n✅ Análisis completado\n")
+        print(f"\n🔧 PASO 3: Optimizando CV para mejor match...")
+        cv_optimization = self.cv_optimizer.optimize_for_job(best_match)
         
         return {
-            "jobs": jobs,
             "analyses": analyses_sorted,
+            "best_match": best_match,
+            "cv_optimization": cv_optimization,
             "total_found": len(jobs)
         }
     
-    def show_results(self, results: Dict):
+    def show_full_results(self, results: Dict):
         """
-        Muestra los resultados de forma legible
+        Muestra resultados completos
         """
-        if not results['analyses']:
-            print("No hay resultados para mostrar")
-            return
-        
         print("\n" + "="*60)
-        print("📋 RESULTADOS ORDENADOS POR MATCH")
+        print("📋 TOP 3 MEJORES MATCHES")
         print("="*60)
         
-        for i, analysis in enumerate(results['analyses'], 1):
+        for i, analysis in enumerate(results['analyses'][:3], 1):
             print(f"\n🏆 #{i} - {analysis['job_title']}")
-            print(f"   🏢 Empresa: {analysis['company']}")
-            print(f"   🎯 Nivel: {analysis['seniority_level']}")
-            print(f"   ⏱ Experiencia: {analysis['experience_required']}")
-            print(f"   ⭐ Match Score: {analysis['match_score']}/100")
-            print(f"   💻 Skills: {', '.join(analysis['tech_skills'][:5])}")  # Top 5
-            print(f"   🔗 Link: {analysis['link']}")
+            print(f"   🏢 {analysis['company']}")
+            print(f"   ⭐ Match: {analysis['match_score']}/100")
+            print(f"   💻 Skills: {', '.join(analysis['tech_skills'][:3])}")
         
-        print(f"\n{'='*60}")
-        print(f"Total encontrados: {results['total_found']}")
-        print(f"{'='*60}\n")
+        print("\n" + "="*60)
+        print("💡 OPTIMIZACIÓN DE CV PARA MEJOR MATCH")
+        print("="*60)
+        
+        opt = results['cv_optimization']
+        print(f"\n🎯 Trabajo: {opt['job_title']}")
+        print(f"\n✅ Skills que tenés: {', '.join(opt['matching_skills'])}")
+        print(f"\n❌ Skills faltantes: {', '.join(opt['missing_skills']) if opt['missing_skills'] else 'Ninguna'}")
+        print(f"\n{opt['recommendations'][:500]}...")
 
-# Test del orquestador
+# Test
 if __name__ == "__main__":
-    # Crear orquestador
     orchestrator = JobAssistantOrchestrator()
-    
-    # Ejecutar búsqueda y análisis
-    results = orchestrator.search_and_analyze(
-        keywords="Frontend Developer",
-        location="Buenos Aires"
-    )
-    
-    # Mostrar resultados
-    orchestrator.show_results(results)
-    
-    print("\n🎉 Sistema multi-agente funcionando correctamente!")
+    results = orchestrator.full_pipeline("Frontend Developer")
+    orchestrator.show_full_results(results)
+    print("\n🎉 Sistema multi-agente completo funcionando!")
