@@ -206,10 +206,11 @@ En términos de recruiting técnico, evidencia skills en backend, IA aplicada, a
 
 ## 👤 Autor y contacto
 
-**Andy Duff**
+**Andy Vallarino**
 
 - GitHub: [@andyduffdj25](https://github.com/andyduffdj25)
 - Email: andyduffdj25@gmail.com
+- Portafolio: https://portfolio-nextjs-nine-lac.vercel.app/
 
 ---
 
