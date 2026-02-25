@@ -131,6 +131,32 @@ function App() {
     }
   };
 
+  const handleUploadCV = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/upload-cv`, {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        alert('✅ CV cargado exitosamente. Ahora las búsquedas usarán tu CV real.');
+      } else {
+        alert('❌ Error: ' + data.error);
+      }
+    } catch (error) {
+      alert('❌ Error al subir CV');
+      console.error(error);
+    }
+  };
+
   return (
     <>
       <style>{`
@@ -315,7 +341,25 @@ function App() {
             </label>
             <button type="submit" disabled={loading}>{loading ? "Analizando... ⏳" : "Buscar matches ✨"}</button>
           </form>
-
+          <div style={{ marginTop: '16px', textAlign: 'center' }}>
+            <label style={{
+              display: 'inline-block',
+              padding: '12px 20px',
+              background: 'rgba(255,255,255,0.15)',
+              border: '1px solid rgba(255,255,255,0.3)',
+              borderRadius: '12px',
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}>
+              📄 Subir mi CV (PDF)
+              <input
+                type="file"
+                accept=".pdf"
+                onChange={handleUploadCV}
+                style={{ display: 'none' }}
+              />
+            </label>
+          </div>
           {error && <p className="warn">⚠️ {error}</p>}
         </section>
 

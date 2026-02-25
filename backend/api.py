@@ -2,11 +2,14 @@
 API REST con FastAPI para conectar frontend con backend
 """
 
-from fastapi import FastAPI
+from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from orchestrator import JobAssistantOrchestrator
+from agents.cv_optimizer_agent import CVOptimizerAgent
 from typing import Optional
+import shutil
+import os
 
 app = FastAPI(title="Job Assistant AI API")
 
@@ -69,6 +72,38 @@ def search_jobs(request: SearchRequest):
             "error": str(e)
         }
 
+@app.post("/api/upload-cv")
+async def upload_cv(file: UploadFile = File(...)):
+    """
+    Sube y procesa un CV en PDF
+    """
+    try:
+        # Validar que sea PDF
+        if not file.filename.endswith('.pdf'):
+            return {"success": False, "error": "Solo se aceptan archivos PDF"}
+        
+        # Guardar el archivo
+        cv_path = "../data/mi_cv.pdf"
+        os.makedirs("../data", exist_ok=True)
+        
+        with open(cv_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+        
+        # Recargar el CV Optimizer con el nuevo CV
+        global orchestrator
+        orchestrator.cv_optimizer = CVOptimizerAgent(cv_path=cv_path)
+        
+        return {
+            "success": True,
+            "message": "CV cargado exitosamente"
+        }
+    
+    except Exception as e:
+        print(f"❌ Error subiendo CV: {e}")
+        return {
+            "success": False,
+            "error": str(e)
+        }
 
 if __name__ == "__main__":
     import uvicorn
