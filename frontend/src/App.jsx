@@ -341,6 +341,7 @@ function App() {
             </label>
             <button type="submit" disabled={loading}>{loading ? "Analizando... ⏳" : "Buscar matches ✨"}</button>
           </form>
+          {/* Botón upload desactivado en producción
           <div style={{ marginTop: '16px', textAlign: 'center' }}>
             <label style={{
               display: 'inline-block',
@@ -360,6 +361,7 @@ function App() {
               />
             </label>
           </div>
+          */}
           {error && <p className="warn">⚠️ {error}</p>}
         </section>
 
