@@ -18,8 +18,6 @@ Asistente de búsqueda laboral potenciado por IA con arquitectura multi-agente. 
 - **Frontend (Vercel):** https://job-assistant-ai-tzle.vercel.app/
 - **Backend (Railway):** https://railway.com/project/55b3b547-1c61-470f-a50f-9065e409406e
 
-> Nota: el enlace de Railway corresponde al proyecto desplegado. Si deseas exponer una URL pública de API en el README, agrega el dominio final del servicio (por ejemplo `https://<tu-servicio>.up.railway.app`).
-
 ---
 
 ## 🧩 Problema que resuelve
