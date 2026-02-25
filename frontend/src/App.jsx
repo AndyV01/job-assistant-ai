@@ -111,7 +111,7 @@ function App() {
     setError("");
 
     try {
-      const response = await fetch(`${API_BASE_URL}/full-pipeline`, {
+      const response = await fetch(`${API_BASE_URL}/api/search`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ keywords, location }),
