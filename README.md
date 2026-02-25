@@ -9,29 +9,30 @@
 ![ChromaDB](https://img.shields.io/badge/ChromaDB-Vector%20Store-7B61FF)
 ![Llama%203.2](https://img.shields.io/badge/Llama%203.2-Local%20LLM-orange)
 
-Asistente de búsqueda laboral potenciado por IA con **arquitectura multi-agente**. El sistema centraliza tres tareas críticas en un único flujo: encontrar ofertas, analizarlas por skills y optimizar el CV para maximizar el match.
+Asistente de búsqueda laboral potenciado por IA con arquitectura multi-agente. El sistema unifica tres tareas clave en un solo flujo: encontrar ofertas, analizar su ajuste técnico y optimizar el CV para mejorar la postulación.
+
+---
+
+## 🌐 Demo en producción
+
+- **Frontend (Vercel):** https://job-assistant-ai-tzle.vercel.app/
+- **Backend (Railway):** https://railway.com/project/55b3b547-1c61-470f-a50f-9065e409406e
 
 ---
 
 ## 🧩 Problema que resuelve
 
-Buscar trabajo en tecnología suele implicar procesos manuales y repetitivos:
+Buscar trabajo en tecnología suele ser un proceso manual y repetitivo:
 
-- Revisar muchas ofertas para identificar cuáles realmente encajan.
-- Interpretar requisitos técnicos y de seniority de forma rápida.
-- Ajustar el CV para cada oportunidad sin perder consistencia.
+- Revisar decenas de vacantes para detectar las que realmente encajan.
+- Interpretar requisitos técnicos y seniority en poco tiempo.
+- Adaptar el CV para cada oportunidad sin perder consistencia.
 
-**Job Assistant AI** resuelve ese cuello de botella automatizando el pipeline completo con IA local (sin costos por API), entregando recomendaciones accionables para postular con mayor precisión.
-
----
-
-## 🖼️ Screenshot del frontend
-
-> Captura del frontend: se incluye en la PR cuando el entorno permite levantar Vite/Playwright. En este repositorio no se versionan imágenes binarias para mantener las PRs livianas y compatibles con la política de revisión.
+**Job Assistant AI** automatiza este pipeline con IA, entregando recomendaciones accionables para postular con mayor precisión.
 
 ---
 
-## 🏗️ Arquitectura del sistema
+## 🏗️ Arquitectura
 
 ```text
 ┌──────────────────────────────┐
@@ -54,7 +55,7 @@ Buscar trabajo en tecnología suele implicar procesos manuales y repetitivos:
 │ 2) AnalyzerAgent → extrae skills + seniority +   │
 │                    calcula match score            │
 │ 3) CVOptimizerAgent (RAG) → consulta CV          │
-│    vectorizado en Chroma + Llama 3.2 local       │
+│    vectorizado en Chroma + Llama 3.2             │
 └───────────────────────────────────────────────────┘
                 │
                 ▼
@@ -66,28 +67,28 @@ Buscar trabajo en tecnología suele implicar procesos manuales y repetitivos:
 
 ---
 
-## ⚙️ Tech Stack (y por qué se usa)
+## ⚙️ Stack tecnológico
 
-- **Python 3.10+**: lenguaje principal para backend, agentes y lógica de IA.
-- **FastAPI**: capa API de alto rendimiento para conectar frontend y pipeline multi-agente.
-- **React + Vite**: interfaz moderna, rápida y orientada a iteración de producto.
-- **TailwindCSS**: construcción de UI ágil y consistente.
-- **LangChain**: utilidades para flujo de RAG y composición con LLMs.
-- **ChromaDB**: almacenamiento vectorial del CV para búsqueda semántica.
-- **Ollama + Llama 3.2 local**: inferencia local para reducir costos y dependencia de proveedores externos.
+- **Python 3.10+** para lógica de negocio y agentes.
+- **FastAPI** para exponer endpoints de alto rendimiento.
+- **React + Vite** para una UI ágil y moderna.
+- **TailwindCSS** para estilos consistentes y rápidos de iterar.
+- **LangChain** para orquestación de componentes de IA.
+- **ChromaDB** como vector store del CV.
+- **Ollama + Llama 3.2** para inferencia local.
 
 ---
 
-## 🚀 Instalación paso a paso
+## 🚀 Ejecución local
 
-## 1) Clonar el repositorio
+### 1) Clonar repositorio
 
 ```bash
 git clone <REPO_URL>
 cd job-assistant-ai
 ```
 
-## 2) Backend (FastAPI + agentes)
+### 2) Backend
 
 ```bash
 python -m venv .venv
@@ -98,16 +99,14 @@ pip install --upgrade pip
 pip install fastapi uvicorn langchain langchain-community chromadb pypdf beautifulsoup4 requests
 ```
 
-> Si usas Ollama local, asegúrate de tener disponible el modelo `llama3.2`.
-
-Ejecutar backend:
+Ejecutar API:
 
 ```bash
 cd backend
 uvicorn api:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-## 3) Frontend (React + Vite)
+### 3) Frontend
 
 En otra terminal:
 
@@ -117,7 +116,7 @@ npm install
 npm run dev -- --host 0.0.0.0 --port 5173
 ```
 
-Variables recomendadas para frontend (`frontend/.env`):
+Configurar `frontend/.env`:
 
 ```env
 VITE_API_URL=http://localhost:8000
@@ -125,27 +124,27 @@ VITE_API_URL=http://localhost:8000
 
 ---
 
-## 🧪 Cómo usar el sistema
+## 🧪 Uso
 
-1. Abrir la UI en `http://localhost:5173`.
-2. Escribir **keywords** del rol (ej: `Frontend Developer`).
-3. Elegir ubicación (ej: `Buenos Aires`).
-4. Ejecutar búsqueda.
-5. Revisar:
-   - Top oportunidades ordenadas por match.
+1. Abre la UI en `http://localhost:5173` (o la demo de Vercel).
+2. Ingresa keywords del rol (ej: `Backend Developer`).
+3. Define ubicación (ej: `Buenos Aires`).
+4. Ejecuta la búsqueda.
+5. Revisa:
+   - Vacantes ordenadas por match.
    - Skills detectadas por oferta.
-   - Recomendaciones de optimización de CV para el mejor match.
+   - Recomendaciones de optimización de CV.
 
-También puedes consultar el backend:
+### Endpoints principales
 
 - `GET /health` → estado del servicio.
-- `POST /api/search` → pipeline completo (scraper + analyzer + cv optimizer).
+- `POST /api/search` → pipeline completo (scraper + analyzer + optimizer).
 
 Ejemplo de request:
 
 ```json
 {
-  "keywords": "Frontend Developer",
+  "keywords": "Backend Developer",
   "location": "Buenos Aires"
 }
 ```
@@ -205,6 +204,17 @@ Este proyecto demuestra:
 
 ---
 
+## 📌 Uso moderado
+
+Para mantener una experiencia estable y evitar bloqueos en fuentes externas:
+
+- Evita ejecuciones masivas o automatizadas en ráfaga.
+- Espera algunos segundos entre búsquedas consecutivas.
+- Limita pruebas de carga a entornos controlados.
+- Si integras nuevas fuentes de scraping, respeta términos de uso y robots.txt cuando aplique.
+
+---
+
 ## 📁 Estructura del proyecto
 
 ```bash
@@ -234,30 +244,15 @@ job-assistant-ai/
 
 ## 🛣️ Roadmap
 
-- [ ] Integrar scraping real sobre fuentes laborales (con políticas anti-bloqueo y normalización de datos).
-- [ ] Mejorar modelo de scoring (ponderación por seniority, experiencia y skills críticas).
-- [ ] Despliegue cloud (backend + frontend + vectorstore persistente).
-- [ ] Autenticación y soporte multi-usuario (perfiles y CVs independientes).
-- [ ] Historial de postulaciones y tracking de progreso.
-- [ ] Evaluación automática de brechas de skills y plan de upskilling.
+- [ ] Integrar más fuentes laborales con normalización robusta de datos.
+- [ ] Mejorar scoring por seniority, experiencia y skills críticas.
+- [ ] Agregar persistencia de histórico de búsquedas y postulaciones.
+- [ ] Incorporar autenticación y soporte multiusuario.
+- [ ] Extender recomendaciones con plan de upskilling.
 
 ---
 
-## 💡 ¿Por qué este proyecto?
-
-Este proyecto demuestra capacidades técnicas muy valoradas en equipos de ingeniería aplicada a IA:
-
-- Diseño de **arquitectura multi-agente** con responsabilidades claras.
-- Integración end-to-end de **frontend + API + pipeline de IA**.
-- Implementación de **RAG local** para reducir costos y controlar datos.
-- Orquestación de componentes con foco en **producto real**, no solo demo aislada.
-- Base sólida para evolucionar a SaaS de empleabilidad con personalización.
-
-En términos de recruiting técnico, evidencia skills en backend, IA aplicada, arquitectura y delivery de producto.
-
----
-
-## 👤 Autor y contacto
+## 👤 Autor
 
 **Andy Vallarino**
 
@@ -265,6 +260,4 @@ En términos de recruiting técnico, evidencia skills en backend, IA aplicada, a
 - Email: andyduffdj25@gmail.com
 - Portafolio: https://portfolio-nextjs-nine-lac.vercel.app/
 
----
-
-Si te interesa colaborar o proponer mejoras, abre un issue o PR 🚀
+Si te interesa colaborar o proponer mejoras, abre un issue o PR. 🚀
