@@ -4,7 +4,7 @@ Orquestador - Coordina todos los agentes del sistema
 
 from agents.scraper_agent import ScraperAgent
 from agents.analyzer_agent import AnalyzerAgent
-from agents.cv_optimizer_agent import CVOptimizerAgent
+#from agents.cv_optimizer_agent import CVOptimizerAgent
 from typing import List, Dict
 
 class JobAssistantOrchestrator:
@@ -12,7 +12,7 @@ class JobAssistantOrchestrator:
         print("🤖 Inicializando Job Assistant con arquitectura multi-agente...")
         self.scraper = ScraperAgent()
         self.analyzer = AnalyzerAgent()
-        self.cv_optimizer = CVOptimizerAgent()
+        #self.cv_optimizer = CVOptimizerAgent()
         print("✅ Agentes cargados: Scraper, Analyzer, CV Optimizer")
     
     def full_pipeline(self, keywords: str, location: str = "Buenos Aires") -> Dict:
@@ -38,15 +38,22 @@ class JobAssistantOrchestrator:
         analyses_sorted = sorted(analyses, key=lambda x: x['match_score'], reverse=True)
         best_match = analyses_sorted[0]
         
-        print(f"\n🔧 PASO 3: Optimizando CV para mejor match...")
-        cv_optimization = self.cv_optimizer.optimize_for_job(best_match)
+        # CV Optimizer desactivado para deploy cloud
+        # print(f"\n🔧 PASO 3: Optimizando CV para mejor match...")
+        # cv_optimization = self.cv_optimizer.optimize_for_job(best_match)
         
         return {
-            "analyses": analyses_sorted,
-            "best_match": best_match,
-            "cv_optimization": cv_optimization,
-            "total_found": len(jobs)
-        }
+        "analyses": analyses_sorted,
+        "best_match": best_match,
+        "cv_optimization": {
+            "job_title": best_match['job_title'],
+            "matching_skills": best_match['tech_skills'][:3],
+            "missing_skills": [],
+            "recommendations": "Deploy cloud: CV Optimizer disponible solo en versión local.",
+            "relevant_experience": "Ejecuta el sistema localmente para análisis completo de CV."
+        },
+        "total_found": len(jobs)
+    }
     
     def show_full_results(self, results: Dict):
         """
