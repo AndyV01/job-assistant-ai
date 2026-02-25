@@ -149,6 +149,59 @@ Ejemplo de request:
   "location": "Buenos Aires"
 }
 ```
+## ⚠️ Nota Importante sobre el Scraper
+
+**El sistema actualmente utiliza datos mock para demostración.**
+
+### ¿Por qué?
+
+Los principales portales de empleo (LinkedIn, Indeed, Bumeran, ZonaJobs) implementan protecciones anti-scraping:
+
+- **Rate limiting agresivo** - Bloquean IPs de datacenters
+- **Detección de bots** - Headers, fingerprinting, CAPTCHAs
+- **Error 403/429** - Requieren proxies rotativos ($) o APIs oficiales ($$)
+
+### Arquitectura Completa
+
+A pesar de usar datos mock, el proyecto demuestra:
+
+✅ **Sistema multi-agente funcional** con orquestador  
+✅ **RAG con ChromaDB** y embeddings vectoriales  
+✅ **Backend Python + FastAPI** deployado en Railway  
+✅ **Frontend React** deployado en Vercel  
+✅ **Integración end-to-end** completa  
+✅ **LLM local** (Llama 3.2) sin costos de API  
+
+### Roadmap de Scraping Real
+
+**Opciones para implementar en producción:**
+
+1. **APIs Oficiales** (recomendado)
+   - LinkedIn Jobs API
+   - Indeed Publisher API
+   - Adzuna API
+
+2. **Scraping con Proxies**
+   - ScraperAPI / Bright Data
+   - Rotación de User Agents
+   - Rate limiting inteligente
+
+3. **Agregadores Públicos**
+   - RSS feeds de empresas
+   - Boards públicos sin protección
+   - APIs no oficiales (RapidAPI)
+
+## 🎯 Valor del Proyecto
+
+Este proyecto demuestra:
+
+- **Arquitectura de sistemas complejos** con múltiples componentes
+- **Integración de IA moderna** (RAG, LLMs, embeddings)
+- **Full-stack deployment** en infraestructura cloud
+- **Diseño de APIs RESTful** con FastAPI
+- **Frontend moderno** con React + Vite
+
+**La capacidad de construir la arquitectura es más valiosa que el scraper en sí.**
 
 ---
 
