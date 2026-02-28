@@ -145,12 +145,13 @@ Ejemplo de request:
 ```json
 {
   "keywords": "Backend Developer",
-  "location": "Buenos Aires"
+  "location": "Brasil"
 }
 ```
 ## ⚠️ Nota Importante sobre el Scraper
 
-**El sistema actualmente utiliza datos mock para demostración.**
+**En entorno local:** el sistema obtiene datos reales via **Adzuna API** (mercado Brasil/LATAM).  
+**En producción cloud:** usa datos mock por limitaciones de la API gratuita en datacenters.
 
 ### ¿Por qué?
 
@@ -169,16 +170,17 @@ A pesar de usar datos mock, el proyecto demuestra:
 ✅ **Backend Python + FastAPI** deployado en Railway  
 ✅ **Frontend React** deployado en Vercel  
 ✅ **Integración end-to-end** completa  
-✅ **LLM local** (Llama 3.2) sin costos de API  
+✅ **LLM local** (Llama 3.2) sin costos de API 
+✅ **Datos reales** via Adzuna API en entorno local 
 
 ### Roadmap de Scraping Real
 
 **Opciones para implementar en producción:**
 
-1. **APIs Oficiales** (recomendado)
-   - LinkedIn Jobs API
-   - Indeed Publisher API
-   - Adzuna API
+1. **APIs Oficiales** ✅ Implementado
+   - Adzuna API (activo en local)
+   - LinkedIn Jobs API (pendiente)
+   - Indeed Publisher API (pendiente)
 
 2. **Scraping con Proxies**
    - ScraperAPI / Bright Data
@@ -240,23 +242,11 @@ job-assistant-ai/
 └── README.md
 ```
 
----
-
-## 🛣️ Roadmap
-
-- [ ] Integrar más fuentes laborales con normalización robusta de datos.
-- [ ] Mejorar scoring por seniority, experiencia y skills críticas.
-- [ ] Agregar persistencia de histórico de búsquedas y postulaciones.
-- [ ] Incorporar autenticación y soporte multiusuario.
-- [ ] Extender recomendaciones con plan de upskilling.
-
----
-
 ## 👤 Autor
 
-**Andy Vallarino**
+**Andres Vallarino**
 
-- GitHub: [@andyduffdj25](https://github.com/andyduffdj25)
+- GitHub: [@AndyV01](https://github.com/AndyV01)
 - Email: andyduffdj25@gmail.com
 - Portafolio: https://portfolio-nextjs-nine-lac.vercel.app/
 

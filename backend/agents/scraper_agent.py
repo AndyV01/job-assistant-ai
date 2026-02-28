@@ -1,133 +1,142 @@
 """
-Agente 1: Scraper de Indeed Argentina - FUNCIONA
+Agente 1: Scraper usando Adzuna API - Datos reales de empleos
+Registro gratuito en: https://developer.adzuna.com
 """
 
 import requests
-from bs4 import BeautifulSoup
+import os
+from dotenv import load_dotenv
+load_dotenv()
 from typing import List, Dict
-import urllib.parse
 
 class ScraperAgent:
-    def __init__(self):
-        self.headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-        }
-    
-    def search_jobs(self, keywords: str, location: str = "Buenos Aires") -> List[Dict]:
+    def __init__(self, app_id: str = None, app_key: str = None):
+        # Reemplazá con tus credenciales de developer.adzuna.com
+        self.app_id = app_id or os.getenv("ADZUNA_APP_ID")
+        self.app_key = app_key or os.getenv("ADZUNA_APP_KEY")
+        self.base_url = "https://api.adzuna.com/v1/api/jobs"
+        self.country = "br"  # Brasil
+
+    def search_jobs(self, keywords: str, location: str = "Brasil") -> List[Dict]:
         """
-        Scraper REAL de Indeed Argentina
+        Busca empleos reales usando Adzuna API
         """
-        print(f"🔍 Scrapeando Indeed: {keywords} en {location}...")
-        
-        # URL de Indeed Argentina
-        query = urllib.parse.quote(keywords)
-        loc = urllib.parse.quote(location)
-        url = f"https://ar.indeed.com/jobs?q={query}&l={loc}"
-        
+        print(f"🔍 Buscando en Adzuna: {keywords} en {location}...")
+
+        # Si no hay credenciales configuradas, usar mock
+        if not self.app_id or not self.app_key:
+            print("⚠️ Credenciales no configuradas, usando mock")
+            return self._get_mock_jobs(keywords)
+
         try:
-            response = requests.get(url, headers=self.headers, timeout=10)
-            
+            url = f"{self.base_url}/{self.country}/search/1"
+            params = {
+                "app_id": self.app_id,
+                "app_key": self.app_key,
+                "what": keywords,
+                "results_per_page": 15,
+                "content-type": "application/json"
+            }
+
+            response = requests.get(url, params=params, timeout=10)
+
             if response.status_code != 200:
                 print(f"⚠️ Status {response.status_code}, usando mock")
                 return self._get_mock_jobs(keywords)
-            
-            soup = BeautifulSoup(response.text, 'html.parser')
-            
-            # Indeed usa diferentes selectores
-            job_cards = soup.find_all('div', class_='job_seen_beacon')
-            
-            if not job_cards:
-                # Fallback a otro selector
-                job_cards = soup.find_all('td', class_='resultContent')
-            
-            if not job_cards:
-                print(f"⚠️ No se encontraron ofertas. Usando mock.")
+
+            data = response.json()
+            results = data.get("results", [])
+
+            if not results:
+                print("⚠️ Sin resultados, usando mock")
                 return self._get_mock_jobs(keywords)
-            
+
             jobs = []
-            for card in job_cards[:15]:
+            for job in results:
                 try:
-                    # Título
-                    title_elem = card.find('h2', class_='jobTitle')
-                    if not title_elem:
-                        title_elem = card.find('a', {'data-jk': True})
-                    
-                    if not title_elem:
-                        continue
-                    
-                    title = title_elem.get_text(strip=True)
-                    
-                    # Link
-                    link_elem = card.find('a', href=True)
-                    job_id = link_elem.get('data-jk', '') if link_elem else ''
-                    link = f"https://ar.indeed.com/viewjob?jk={job_id}" if job_id else "https://ar.indeed.com"
-                    
-                    # Empresa
-                    company_elem = card.find('span', class_='companyName')
-                    company = company_elem.get_text(strip=True) if company_elem else "Empresa Confidencial"
-                    
-                    # Ubicación
-                    loc_elem = card.find('div', class_='companyLocation')
-                    job_location = loc_elem.get_text(strip=True) if loc_elem else location
-                    
-                    # Descripción
-                    desc_elem = card.find('div', class_='snippet')
-                    description = desc_elem.get_text(strip=True) if desc_elem else f"Oferta de {title}"
-                    
+                    description = job.get("description", "")
+                    title = job.get("title", "Sin título")
+                    company = job.get("company", {}).get("display_name", "Empresa Confidencial")
+                    job_location = job.get("location", {}).get("display_name", location)
+                    link = job.get("redirect_url", "https://adzuna.com")
+                    salary_min = job.get("salary_min")
+                    salary_max = job.get("salary_max")
+
+                    salary = ""
+                    if salary_min and salary_max:
+                        salary = f"${salary_min:,.0f} - ${salary_max:,.0f}"
+                    elif salary_min:
+                        salary = f"Desde ${salary_min:,.0f}"
+
                     jobs.append({
                         "title": title,
                         "company": company,
                         "location": job_location,
                         "link": link,
                         "description": description[:250],
+                        "salary": salary,
                         "requirements": self._extract_keywords(title + " " + description)
                     })
-                
-                except Exception as e:
+
+                except Exception:
                     continue
-            
-            if jobs:
-                print(f"✅ {len(jobs)} ofertas REALES de Indeed Argentina")
-                return jobs
-            else:
-                return self._get_mock_jobs(keywords)
-        
+
+            print(f"✅ {len(jobs)} ofertas reales de Adzuna Argentina")
+            return jobs
+
         except Exception as e:
-            print(f"❌ Error scrapeando: {e}")
+            print(f"❌ Error: {e}")
             return self._get_mock_jobs(keywords)
-    
+
     def _extract_keywords(self, text: str) -> List[str]:
-        tech = ['react', 'typescript', 'javascript', 'python', 'node.js', 'next.js', 
-                'vue', 'angular', 'sql', 'postgresql', 'mongodb', 'aws', 'docker', 'git']
+        tech = [
+            'react', 'typescript', 'javascript', 'python', 'node.js', 'next.js',
+            'vue', 'angular', 'sql', 'postgresql', 'mongodb', 'aws', 'docker',
+            'git', 'fastapi', 'django', 'java', 'kotlin', 'swift', 'tailwind'
+        ]
         text_lower = text.lower()
         found = [kw for kw in tech if kw in text_lower]
         return found[:5] if found else ['javascript', 'html', 'css']
-    
+
     def _get_mock_jobs(self, keywords: str) -> List[Dict]:
         return [
             {
                 "title": f"{keywords} - React TypeScript",
                 "company": "Tech Company Argentina",
                 "location": "Buenos Aires",
-                "link": "https://ar.indeed.com",
-                "description": f"Buscamos {keywords} con sólida experiencia",
+                "link": "https://adzuna.com",
+                "description": f"Buscamos {keywords} con sólida experiencia en React y TypeScript.",
+                "salary": "$200,000 - $350,000",
                 "requirements": ["react", "typescript", "javascript"]
             },
             {
-                "title": f"Desarrollador {keywords}",
+                "title": f"Desarrollador {keywords} Semi-Senior",
                 "company": "Startup Digital",
                 "location": "CABA - Remoto",
-                "link": "https://ar.indeed.com",
-                "description": "Equipo ágil busca talento frontend",
-                "requirements": ["react", "css", "html"]
+                "link": "https://adzuna.com",
+                "description": "Equipo ágil busca talento frontend con ganas de crecer.",
+                "salary": "$150,000 - $250,000",
+                "requirements": ["react", "css", "html", "git"]
+            },
+            {
+                "title": f"Senior {keywords} - Remoto",
+                "company": "Empresa de Tecnología",
+                "location": "Remoto - Argentina",
+                "link": "https://adzuna.com",
+                "description": "Buscamos perfil senior para liderar desarrollo frontend.",
+                "salary": "$400,000 - $600,000",
+                "requirements": ["react", "typescript", "next.js", "node.js"]
             }
         ]
 
+
 if __name__ == "__main__":
     agent = ScraperAgent()
-    jobs = agent.search_jobs("Frontend Developer", "Buenos Aires")
+    jobs = agent.search_jobs("Frontend Developer")
     for i, job in enumerate(jobs, 1):
         print(f"\n{i}. {job['title']}")
         print(f"   🏢 {job['company']}")
         print(f"   📍 {job['location']}")
+        if job.get('salary'):
+            print(f"   💰 {job['salary']}")
         print(f"   🔗 {job['link']}")
