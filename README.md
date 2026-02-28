@@ -240,18 +240,6 @@ job-assistant-ai/
 └── README.md
 ```
 
----
-
-## 🛣️ Roadmap
-
-- [ ] Integrar más fuentes laborales con normalización robusta de datos.
-- [ ] Mejorar scoring por seniority, experiencia y skills críticas.
-- [ ] Agregar persistencia de histórico de búsquedas y postulaciones.
-- [ ] Incorporar autenticación y soporte multiusuario.
-- [ ] Extender recomendaciones con plan de upskilling.
-
----
-
 ## 👤 Autor
 
 **Andy Vallarino**
