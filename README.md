@@ -7,7 +7,7 @@
 ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-UI-06B6D4?logo=tailwindcss&logoColor=white)
 ![LangChain](https://img.shields.io/badge/LangChain-Orchestration-1C3C3C)
 ![ChromaDB](https://img.shields.io/badge/ChromaDB-Vector%20Store-7B61FF)
-![Llama%203.2](https://img.shields.io/badge/Llama%203.2-Local%20LLM-orange)
+![Groq](https://img.shields.io/badge/Groq-LLM%20Cloud-F55036?logo=groq&logoColor=white)
 
 Asistente de búsqueda laboral potenciado por IA con arquitectura multi-agente. El sistema unifica tres tareas clave en un solo flujo: encontrar ofertas, analizar su ajuste técnico y optimizar el CV para mejorar la postulación.
 
@@ -16,7 +16,6 @@ Asistente de búsqueda laboral potenciado por IA con arquitectura multi-agente. 
 ## 🌐 Demo en producción
 
 - **Frontend (Vercel):** https://job-assistant-ai-tzle.vercel.app/
-- **Backend (Railway):** https://railway.com/project/55b3b547-1c61-470f-a50f-9065e409406e
 
 ---
 
@@ -47,16 +46,16 @@ Buscar trabajo en tecnología suele ser un proceso manual y repetitivo:
 └───────────────┬──────────────┘
                 │
                 ▼
-┌───────────────────────────────────────────────────┐
+┌──────────────────────────────────────────────────┐
 │          JobAssistantOrchestrator                │
 │ coordina el flujo extremo a extremo              │
-├───────────────────────────────────────────────────┤
+├──────────────────────────────────────────────────┤
 │ 1) ScraperAgent  → obtiene ofertas               │
 │ 2) AnalyzerAgent → extrae skills + seniority +   │
-│                    calcula match score            │
-│ 3) CVOptimizerAgent (RAG) → consulta CV          │
-│    vectorizado en Chroma + Llama 3.2             │
-└───────────────────────────────────────────────────┘
+│                    calcula match score           │
+│ 3) CVOptimizerAgent → consulta CV con Groq API   │
+│                    (Llama 3.3) en cloud          │
+└──────────────────────────────────────────────────┘
                 │
                 ▼
 ┌──────────────────────────────┐
@@ -151,11 +150,11 @@ Ejemplo de request:
 ## ⚠️ Nota Importante sobre el Scraper
 
 **En entorno local:** el sistema obtiene datos reales via **Adzuna API** (mercado Brasil/LATAM).  
-**En producción cloud:** usa datos mock. La demo en Vercel está completamente funcional.
+**En producción cloud:** datos reales via Adzuna API. La demo en Vercel está completamente funcional.
 
 ### Arquitectura Completa
 
-A pesar de usar datos mock, el proyecto demuestra:
+El proyecto demuestra:
 
 ✅ **Sistema multi-agente funcional** con orquestador  
 ✅ **RAG con ChromaDB** y embeddings vectoriales  
