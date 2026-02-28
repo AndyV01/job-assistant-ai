@@ -97,13 +97,13 @@ const SkeletonCard = () => (
 );
 
 function App() {
-  const [keywords, setKeywords] = useState("Frontend Developer");
-  const [location, setLocation] = useState("Buenos Aires");
+  const [keywords, setKeywords] = useState();
+  const [location, setLocation] = useState();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [results, setResults] = useState(null);
 
-  const topMatches = useMemo(() => results?.analyses?.slice(0, 3) || [], [results]);
+  const topMatches = useMemo(() => results?.analyses || [], [results]);
 
   const runPipeline = async (e) => {
     e.preventDefault();
