@@ -170,7 +170,7 @@ A pesar de usar datos mock, el proyecto demuestra:
 ✅ **Backend Python + FastAPI** deployado en Railway  
 ✅ **Frontend React** deployado en Vercel  
 ✅ **Integración end-to-end** completa  
-✅ **LLM local** (Llama 3.2) sin costos de API 
+✅ **LLM local** (Llama 3.2) sin costos de API  
 ✅ **Datos reales** via Adzuna API en entorno local 
 
 ### Roadmap de Scraping Real
