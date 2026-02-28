@@ -151,15 +151,7 @@ Ejemplo de request:
 ## ⚠️ Nota Importante sobre el Scraper
 
 **En entorno local:** el sistema obtiene datos reales via **Adzuna API** (mercado Brasil/LATAM).  
-**En producción cloud:** usa datos mock por limitaciones de la API gratuita en datacenters.
-
-### ¿Por qué?
-
-Los principales portales de empleo (LinkedIn, Indeed, Bumeran, ZonaJobs) implementan protecciones anti-scraping:
-
-- **Rate limiting agresivo** - Bloquean IPs de datacenters
-- **Detección de bots** - Headers, fingerprinting, CAPTCHAs
-- **Error 403/429** - Requieren proxies rotativos ($) o APIs oficiales ($$)
+**En producción cloud:** usa datos mock. La demo en Vercel está completamente funcional.
 
 ### Arquitectura Completa
 
