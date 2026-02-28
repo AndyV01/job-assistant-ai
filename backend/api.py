@@ -16,7 +16,8 @@ app = FastAPI(title="Job Assistant AI API")
 # Configurar CORS para permitir requests desde el frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # Frontend Vite
+    allow_origins=[ "http://localhost:5173",
+    "https://job-assistant-ai-tzle.vercel.app"],  # Frontend Vite
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
