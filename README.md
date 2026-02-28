@@ -75,7 +75,7 @@ Buscar trabajo en tecnología suele ser un proceso manual y repetitivo:
 - **TailwindCSS** para estilos consistentes y rápidos de iterar.
 - **LangChain** para orquestación de componentes de IA.
 - **ChromaDB** como vector store del CV.
-- **Ollama + Llama 3.2** para inferencia local.
+- **Groq API** para inferencia LLM en cloud (Llama 3.3-70b).
 
 ---
 
@@ -162,8 +162,10 @@ A pesar de usar datos mock, el proyecto demuestra:
 ✅ **Backend Python + FastAPI** deployado en Railway  
 ✅ **Frontend React** deployado en Vercel  
 ✅ **Integración end-to-end** completa  
-✅ **LLM local** (Llama 3.2) sin costos de API  
-✅ **Datos reales** via Adzuna API en entorno local 
+✅ **LLM en cloud** (Llama 3.3 via Groq API) sin costos  
+✅ **Datos reales** via Adzuna API en entorno local  
+✅ **CV Optimizer activo** en producción y local  
+✅ **Upload de CV** en tiempo real 
 
 ### Roadmap de Scraping Real
 

@@ -1,182 +1,151 @@
 """
 Agente 3: CV Optimizer con RAG
 Lee tu CV, lo vectoriza y lo optimiza según cada trabajo
+Usa Groq API (Llama 3.2) - gratuito en cloud
 """
 
 from langchain_community.document_loaders import PyPDFLoader
-from langchain_community.vectorstores import Chroma
-from langchain_community.embeddings import OllamaEmbeddings
-from langchain_community.llms import Ollama
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+from groq import Groq
 from typing import Dict, List
 import os
+from dotenv import load_dotenv
+load_dotenv()
 
 class CVOptimizerAgent:
     def __init__(self, cv_path: str = "../../data/mi_cv.pdf"):
-        print("📄 Inicializando CV Optimizer con RAG...")
+        print("📄 Inicializando CV Optimizer con Groq...")
         
         self.cv_path = cv_path
-        self.llm = Ollama(model="llama3.2")
-        self.embeddings = OllamaEmbeddings(model="llama3.2")
-        self.vectorstore = None
+        self.client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+        self.cv_text = ""
         
-        # Cargar y vectorizar el CV
+        # Cargar CV
         self._load_cv()
         
-        print("✅ CV cargado y vectorizado")
+        print("✅ CV cargado y listo")
     
     def _load_cv(self):
         """
-        Carga el CV desde PDF y lo convierte en vectores
+        Carga el CV desde PDF y extrae el texto
         """
-        # Verificar que el archivo existe
         if not os.path.exists(self.cv_path):
-            print(f"⚠️ CV no encontrado en {self.cv_path}")
-            print("📝 Usando CV de ejemplo...")
-            # Crear CV mock para testing
-            self._create_mock_cv()
+            print(f"⚠️ CV no encontrado en {self.cv_path}, usando CV mock...")
+            self.cv_text = self._get_mock_cv()
             return
         
-        # Cargar PDF
-        loader = PyPDFLoader(self.cv_path)
-        documents = loader.load()
-        
-        # Dividir en chunks
-        text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=500,
-            chunk_overlap=50
-        )
-        chunks = text_splitter.split_documents(documents)
-        
-        # Crear vectorstore
-        self.vectorstore = Chroma.from_documents(
-            documents=chunks,
-            embedding=self.embeddings,
-            persist_directory="../../data/vectorstore"
-        )
-        
-        print(f"   📊 CV dividido en {len(chunks)} chunks")
+        try:
+            loader = PyPDFLoader(self.cv_path)
+            documents = loader.load()
+            self.cv_text = "\n".join([doc.page_content for doc in documents])
+            print(f"   📊 CV cargado: {len(self.cv_text)} caracteres")
+        except Exception as e:
+            print(f"⚠️ Error cargando CV: {e}, usando mock...")
+            self.cv_text = self._get_mock_cv()
     
-    def _create_mock_cv(self):
+    def load_cv_from_text(self, text: str):
         """
-        Crea un CV mock para testing si no existe el PDF
+        Carga el CV desde texto directo (para uploads)
         """
-        from langchain_core.documents import Document
-        
-        mock_cv_text = """
+        self.cv_text = text
+        print(f"✅ CV cargado desde upload: {len(text)} caracteres")
+    
+    def _get_mock_cv(self) -> str:
+        return """
         ANDRÉS VALLARINO
-        Frontend / Full-Stack Developer
+        Frontend Developer
         
         EXPERIENCIA:
-        - FlexiPaaS (2023-2024): Desarrollo frontend con React, TypeScript, Next.js
-        - Trabajé en módulo Flowchart con drag & drop
-        - Integración con APIs REST y Spring Boot
+        - OpenDevPro (2024-2026): React, TypeScript, Next.js, Redux, Java, Material UI, CI/CD
+        - MeVuelo (2023-2024): React, TypeScript, Material UI, APIs terceros
+        - Idea Creativa Marketing (2021-2022): React, HTML5, CSS3, Bootstrap, Figma
         
         SKILLS TÉCNICAS:
-        - Frontend: React, TypeScript, Next.js, Vite, TailwindCSS
+        - Frontend: React, TypeScript, Next.js, Vite, TailwindCSS, Redux
         - Backend: Node.js, FastAPI, Python
-        - Tools: Git, GitHub Actions, CI/CD, Vercel, Netlify
+        - Tools: Git, GitHub Actions, CI/CD, Vercel, Railway
         - IA: Arquitectura multi-agente, LangChain, RAG, Prompt Engineering
         
         PROYECTOS:
-        - Arcana Mística: Sistema multi-agente con Claude API
-        - Job Assistant: RAG con Llama local
-        - E-commerce: React con CI/CD
+        - Job Assistant AI: Sistema multi-agente con RAG, FastAPI, Adzuna API
+        - Arcana Mística: Multi-agente con Claude API, Serverless Functions
         
         EDUCACIÓN:
-        - Certificación IA Generativa (Desafío Latam 2024)
+        - Certificación IA Generativas (Desafío Latam 2025)
         - Desarrollo Web Full Stack
         """
-        
-        doc = Document(page_content=mock_cv_text)
-        
-        text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=500,
-            chunk_overlap=50
-        )
-        chunks = text_splitter.split_documents([doc])
-        
-        self.vectorstore = Chroma.from_documents(
-            documents=chunks,
-            embedding=self.embeddings,
-            persist_directory="../../data/vectorstore"
-        )
     
     def optimize_for_job(self, job_analysis: Dict) -> Dict:
         """
-        Optimiza tu CV según los requisitos del trabajo usando RAG
-        
-        Args:
-            job_analysis: Análisis del trabajo (del Analyzer Agent)
-            
-        Returns:
-            CV optimizado con recomendaciones
+        Optimiza el CV según los requisitos del trabajo usando Groq
         """
-        job_title = job_analysis['job_title']
-        required_skills = job_analysis['tech_skills']
+        job_title = job_analysis.get('job_title', '')
+        required_skills = job_analysis.get('tech_skills', [])
+        seniority = job_analysis.get('seniority_level', '')
         
         print(f"\n🔧 Optimizando CV para: {job_title}")
         
-        # Buscar en el vectorstore las partes relevantes del CV
-        query = f"Experiencia y skills relacionados con: {', '.join(required_skills)}"
-        relevant_docs = self.vectorstore.similarity_search(query, k=3)
+        # Truncar CV si es muy largo (Groq tiene límite de tokens)
+        cv_context = self.cv_text[:3000] if len(self.cv_text) > 3000 else self.cv_text
         
-        # Construir contexto
-        cv_context = "\n".join([doc.page_content for doc in relevant_docs])
-        
-        # Generar recomendaciones con LLM
-        prompt = f"""
-Eres un experto en optimización de CVs para tech jobs.
+        prompt = f"""Eres un experto en optimización de CVs para tech jobs.
 
 TRABAJO:
 - Puesto: {job_title}
+- Seniority: {seniority}
 - Skills requeridas: {', '.join(required_skills)}
 
-MI CV (extracto relevante):
+MI CV:
 {cv_context}
 
 TAREA:
-1. Identifica qué skills del trabajo YA tengo en mi CV
-2. Identifica qué skills me faltan
-3. Sugiere cómo destacar mi experiencia relevante
-4. Recomienda qué agregar/enfatizar en el CV
+1. Identificá qué skills del trabajo YA tengo en mi CV
+2. Identificá qué skills me faltan
+3. Sugerí cómo destacar mi experiencia relevante
+4. Recomendá qué agregar o enfatizar
 
-Responde en español, formato claro y conciso.
-"""
+Respondé en español, formato claro y conciso. Máximo 200 palabras."""
+
+        try:
+            response = self.client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=400
+            )
+            recommendations = response.choices[0].message.content
+        except Exception as e:
+            print(f"⚠️ Error Groq: {e}")
+            recommendations = f"Revisá tu experiencia con {', '.join(required_skills[:3])} para este rol."
         
-        response = self.llm.invoke(prompt)
+        cv_lower = self.cv_text.lower()
+        matching = [s for s in required_skills if s.lower() in cv_lower]
+        missing = [s for s in required_skills if s.lower() not in cv_lower]
         
-        optimization = {
+        return {
             "job_title": job_title,
-            "matching_skills": [s for s in required_skills if any(s in cv_context.lower() for s in required_skills)],
-            "missing_skills": [s for s in required_skills if s not in cv_context.lower()],
-            "recommendations": response,
+            "matching_skills": matching,
+            "missing_skills": missing,
+            "recommendations": recommendations,
             "relevant_experience": cv_context[:200] + "..."
         }
-        
-        return optimization
 
-# Test del agente
+
 if __name__ == "__main__":
     print("\n" + "="*60)
-    print("TEST: CV OPTIMIZER CON RAG")
+    print("TEST: CV OPTIMIZER CON GROQ")
     print("="*60 + "\n")
     
-    # Crear agente
     optimizer = CVOptimizerAgent()
     
-    # Job mock para probar
     job_analysis = {
         "job_title": "Frontend Developer React",
         "company": "Tech Startup",
-        "tech_skills": ["react", "typescript", "next.js"],
+        "tech_skills": ["react", "typescript", "next.js", "redux"],
         "seniority_level": "Semi-Senior"
     }
     
-    # Optimizar CV
     result = optimizer.optimize_for_job(job_analysis)
     
-    # Mostrar resultados
     print(f"\n📋 Optimización para: {result['job_title']}")
     print(f"\n✅ Skills que YA tenés: {', '.join(result['matching_skills'])}")
     print(f"\n❌ Skills que te faltan: {', '.join(result['missing_skills'])}")

@@ -102,6 +102,9 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [results, setResults] = useState(null);
+  const [uploadingCV, setUploadingCV] = useState(false);
+  const [cvLoaded, setCvLoaded] = useState(false);
+
 
   const topMatches = useMemo(() => results?.analyses || [], [results]);
 
@@ -135,6 +138,7 @@ function App() {
     const file = event.target.files[0];
     if (!file) return;
 
+    setUploadingCV(true);
     const formData = new FormData();
     formData.append('file', file);
 
@@ -147,14 +151,13 @@ function App() {
       const data = await response.json();
 
       if (data.success) {
-        alert('✅ CV cargado exitosamente. Ahora las búsquedas usarán tu CV real.');
-      } else {
-        alert('❌ Error: ' + data.error);
+        setCvLoaded(true);
       }
     } catch (error) {
-      alert('❌ Error al subir CV');
       console.error(error);
-    }
+    } finally {
+       setUploadingCV(false);
+      }
   };
 
   return (
@@ -341,27 +344,14 @@ function App() {
             </label>
             <button type="submit" disabled={loading}>{loading ? "Analizando... ⏳" : "Buscar matches ✨"}</button>
           </form>
-          {/* Botón upload desactivado en producción
+          
           <div style={{ marginTop: '16px', textAlign: 'center' }}>
-            <label style={{
-              display: 'inline-block',
-              padding: '12px 20px',
-              background: 'rgba(255,255,255,0.15)',
-              border: '1px solid rgba(255,255,255,0.3)',
-              borderRadius: '12px',
-              cursor: 'pointer',
-              transition: 'all 0.2s'
-            }}>
-              📄 Subir mi CV (PDF)
-              <input
-                type="file"
-                accept=".pdf"
-                onChange={handleUploadCV}
-                style={{ display: 'none' }}
-              />
+            <label style={{ display: 'inline-block', padding: '12px 20px', background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '12px', cursor: 'pointer', transition: 'all 0.2s' }} className={uploadingCV ? 'disabled' : ''}>
+                {uploadingCV ? '⏳ Cargando CV...' : cvLoaded ? '✅ CV cargado' : '📄 Subir mi CV (PDF)'}
+              <input type="file" accept=".pdf" onChange={handleUploadCV} style={{ display: 'none' }} disabled={uploadingCV}/>
             </label>
           </div>
-          */}
+          
           {error && <p className="warn">⚠️ {error}</p>}
         </section>
 

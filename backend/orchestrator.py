@@ -39,19 +39,13 @@ class JobAssistantOrchestrator:
         best_match = analyses_sorted[0]
         
         # CV Optimizer desactivado para deploy cloud
-        # print(f"\n🔧 PASO 3: Optimizando CV para mejor match...")
-        # cv_optimization = self.cv_optimizer.optimize_for_job(best_match)
+        print(f"\n🔧 PASO 3: Optimizando CV para mejor match...")
+        cv_optimization = self.cv_optimizer.optimize_for_job(best_match)
         
         return {
         "analyses": analyses_sorted,
         "best_match": best_match,
-        "cv_optimization": {
-            "job_title": best_match['job_title'],
-            "matching_skills": best_match['tech_skills'][:3],
-            "missing_skills": [],
-            "recommendations": "Deploy cloud: CV Optimizer disponible solo en versión local.",
-            "relevant_experience": "Ejecuta el sistema localmente para análisis completo de CV."
-        },
+        "cv_optimization": cv_optimization,
         "total_found": len(jobs)
     }
     
