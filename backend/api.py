@@ -2,9 +2,10 @@
 API REST con FastAPI para conectar frontend con backend
 """
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from fastapi.responses import JSONResponse
 from orchestrator import JobAssistantOrchestrator
 from agents.cv_optimizer_agent import CVOptimizerAgent
 from typing import Optional
@@ -45,19 +46,27 @@ def root():
 def health():
     return {"status": "ok"}
 
+@app.options("/api/search")
+async def options_search(request: Request):
+    return JSONResponse(
+        content={},
+        headers={
+            "Access-Control-Allow-Origin": "https://job-assistant-ai-tzle.vercel.app",
+            "Access-Control-Allow-Methods": "POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type",
+        }
+    )
+
 @app.post("/api/search")
 def search_jobs(request: SearchRequest):
     """
     Endpoint principal: busca trabajos y optimiza CV
     """
     try:
-        # Ejecutar pipeline completo
         results = orchestrator.full_pipeline(
             keywords=request.keywords,
             location=request.location
         )
-        
-        # Formatear respuesta para el frontend
         return {
             "success": True,
             "analyses": results.get("analyses", []),
