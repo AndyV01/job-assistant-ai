@@ -156,8 +156,8 @@ function App() {
     } catch (error) {
       console.error(error);
     } finally {
-       setUploadingCV(false);
-      }
+      setUploadingCV(false);
+    }
   };
 
   return (
@@ -344,14 +344,14 @@ function App() {
             </label>
             <button type="submit" disabled={loading}>{loading ? "Analizando... ⏳" : "Buscar matches ✨"}</button>
           </form>
-          
+
           <div style={{ marginTop: '16px', textAlign: 'center' }}>
             <label style={{ display: 'inline-block', padding: '12px 20px', background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '12px', cursor: 'pointer', transition: 'all 0.2s' }} className={uploadingCV ? 'disabled' : ''}>
-                {uploadingCV ? '⏳ Cargando CV...' : cvLoaded ? '✅ CV cargado' : '📄 Subir mi CV (PDF)'}
-              <input type="file" accept=".pdf" onChange={handleUploadCV} style={{ display: 'none' }} disabled={uploadingCV}/>
+              {uploadingCV ? '⏳ Cargando CV...' : cvLoaded ? '✅ CV cargado' : '📄 Subir mi CV (PDF)'}
+              <input type="file" accept=".pdf" onChange={handleUploadCV} style={{ display: 'none' }} disabled={uploadingCV} />
             </label>
           </div>
-          
+
           {error && <p className="warn">⚠️ {error}</p>}
         </section>
 
@@ -373,9 +373,29 @@ function App() {
                 </div>
               ))}
 
-              {!loading && !topMatches.length && (
-                <p className="muted">Aún no hay resultados. Inicia una búsqueda para ver oportunidades.</p>
+              {!loading && results && !topMatches.length && (
+                <div style={{ textAlign: 'center', padding: '32px 16px' }}>
+                  <div style={{ fontSize: '4rem', marginBottom: '12px' }}>🔍</div>
+                  <h3 style={{ margin: '0 0 8px', fontSize: '1.1rem' }}>Sin resultados para "{keywords}"</h3>
+                  <p className="muted" style={{ margin: '0 0 16px' }}>
+                    No encontramos ofertas para ese rol en este momento.<br />
+                    Probá con otro keyword o ubicación.
+                  </p>
+                  <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                    {['Frontend Developer', 'React Developer', 'Full Stack'].map((s) => (
+                      <span
+                        key={s}
+                        className="chip"
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => setKeywords(s)}
+                      >
+                        {s}
+                      </span>
+                    ))}
+                  </div>
+                </div>
               )}
+
             </div>
           </article>
 
