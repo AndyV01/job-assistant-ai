@@ -7,12 +7,14 @@ from agents.analyzer_agent import AnalyzerAgent
 #from agents.cv_optimizer_agent import CVOptimizerAgent
 from typing import List, Dict
 
+from backend.agents.cv_optimizer_agent import CVOptimizerAgent
+
 class JobAssistantOrchestrator:
     def __init__(self):
         print("🤖 Inicializando Job Assistant con arquitectura multi-agente...")
         self.scraper = ScraperAgent()
         self.analyzer = AnalyzerAgent()
-        #self.cv_optimizer = CVOptimizerAgent()
+        self.cv_optimizer = CVOptimizerAgent()
         print("✅ Agentes cargados: Scraper, Analyzer, CV Optimizer")
     
     def full_pipeline(self, keywords: str, location: str = "Buenos Aires") -> Dict:
