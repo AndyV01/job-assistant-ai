@@ -281,7 +281,7 @@ function App() {
       <main className="app">
         <section className="hero">
           <h1>🚀 Job Assistant AI</h1>
-          <p className="subtitle">Encuentra el mejor match para tu CV con estilo futurista + insights accionables.</p>
+          <p className="subtitle">Tu próximo trabajo ya existe. Solo falta encontrarlo antes que los demás.</p>
 
           <form onSubmit={runPipeline}>
             <label className="input-wrap">
@@ -301,7 +301,11 @@ function App() {
               <input type="file" accept=".pdf" onChange={handleUploadCV} style={{ display: 'none' }} disabled={uploadingCV} />
             </label>
           </div>
-
+          {!cvLoaded && (
+            <p style={{ marginTop: '10px', opacity: '0.75', fontSize: '0.88rem', textAlign: 'center' }}>
+              💡 Subí tu CV para obtener recomendaciones personalizadas
+            </p>
+          )}
           {error && <p className="warn">⚠️ {error}</p>}
         </section>
 
