@@ -187,7 +187,7 @@ El proyecto demuestra:
 Este proyecto demuestra:
 
 - **Arquitectura de sistemas complejos** con múltiples componentes
-- **Integración de IA moderna** (RAG, LLMs, embeddings)
+- **Integración de IA moderna** ( LLMs, LangChain )
 - **Full-stack deployment** en infraestructura cloud
 - **Diseño de APIs RESTful** con FastAPI
 - **Frontend moderno** con React + Vite
