@@ -7,7 +7,7 @@ from agents.analyzer_agent import AnalyzerAgent
 #from agents.cv_optimizer_agent import CVOptimizerAgent
 from typing import List, Dict
 
-from backend.agents.cv_optimizer_agent import CVOptimizerAgent
+from agents.cv_optimizer_agent import CVOptimizerAgent
 
 class JobAssistantOrchestrator:
     def __init__(self):
