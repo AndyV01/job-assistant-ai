@@ -6,7 +6,6 @@
 ![Vite](https://img.shields.io/badge/Vite-Build%20Tool-646CFF?logo=vite&logoColor=white)
 ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-UI-06B6D4?logo=tailwindcss&logoColor=white)
 ![LangChain](https://img.shields.io/badge/LangChain-Orchestration-1C3C3C)
-![ChromaDB](https://img.shields.io/badge/ChromaDB-Vector%20Store-7B61FF)
 ![Groq](https://img.shields.io/badge/Groq-LLM%20Cloud-F55036?logo=groq&logoColor=white)
 
 Asistente de búsqueda laboral potenciado por IA con arquitectura multi-agente. El sistema unifica tres tareas clave en un solo flujo: encontrar ofertas, analizar su ajuste técnico y optimizar el CV para mejorar la postulación.
@@ -51,8 +50,8 @@ Buscar trabajo en tecnología suele ser un proceso manual y repetitivo:
 │ coordina el flujo extremo a extremo              │
 ├──────────────────────────────────────────────────┤
 │ 1) ScraperAgent  → obtiene ofertas               │
-│ 2) AnalyzerAgent → extrae skills + seniority +   │
-│                    calcula match score           │
+│ 2) AnalyzerAgent → LLM real con tool calling     │
+│                    (Groq + LangChain tools)      │
 │ 3) CVOptimizerAgent → consulta CV con Groq API   │
 │                    (Llama 3.3) en cloud          │
 └──────────────────────────────────────────────────┘
@@ -73,8 +72,8 @@ Buscar trabajo en tecnología suele ser un proceso manual y repetitivo:
 - **React + Vite** para una UI ágil y moderna.
 - **TailwindCSS** para estilos consistentes y rápidos de iterar.
 - **LangChain** para orquestación de componentes de IA.
-- **ChromaDB** como vector store del CV.
-- **Groq API** para inferencia LLM en cloud (Llama 3.3-70b).
+- **Groq API** para inferencia LLM en cloud (Llama 3 via tool calling).
+- **Adzuna API** para obtención de ofertas reales.
 
 ---
 
@@ -95,7 +94,7 @@ source .venv/bin/activate  # Linux/macOS
 # .venv\Scripts\activate   # Windows PowerShell
 
 pip install --upgrade pip
-pip install fastapi uvicorn langchain langchain-community chromadb pypdf beautifulsoup4 requests
+pip install fastapi uvicorn langchain langchain-community langchain-groq groq pypdf beautifulsoup4 requests python-dotenv python-multipart
 ```
 
 Ejecutar API:
@@ -147,7 +146,7 @@ Ejemplo de request:
   "location": "Brasil"
 }
 ```
-## ⚠️ Nota Importante sobre el Scraper
+## ℹ️ Fuente de datos
 
 **En entorno local:** el sistema obtiene datos reales via **Adzuna API** (mercado Brasil/LATAM).  
 **En producción cloud:** datos reales via Adzuna API. La demo en Vercel está completamente funcional.
@@ -157,14 +156,12 @@ Ejemplo de request:
 El proyecto demuestra:
 
 ✅ **Sistema multi-agente funcional** con orquestador  
-✅ **RAG con ChromaDB** y embeddings vectoriales  
+✅ **LLM con tool calling real** via Groq + LangChain  
+✅ **Datos reales** via Adzuna API en local y producción  
+✅ **CV Optimizer** con upload de CV en tiempo real  
 ✅ **Backend Python + FastAPI** deployado en Railway  
 ✅ **Frontend React** deployado en Vercel  
-✅ **Integración end-to-end** completa  
-✅ **LLM en cloud** (Llama 3.3 via Groq API) sin costos  
-✅ **Datos reales** via Adzuna API en entorno local  
-✅ **CV Optimizer activo** en producción y local  
-✅ **Upload de CV** en tiempo real 
+✅ **Integración end-to-end** completa 
 
 ### Roadmap de Scraping Real
 
