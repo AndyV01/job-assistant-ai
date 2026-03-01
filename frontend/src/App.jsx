@@ -9,55 +9,6 @@ const quickTips = [
   "Prioriza skills clave en el primer tercio del CV.",
 ];
 
-const buildFallbackData = (keywords, location) => {
-  const base = [
-    {
-      job_title: `${keywords || "Frontend Developer"} - React`,
-      company: "Nova Digital",
-      tech_skills: ["react", "typescript", "next.js", "tailwind"],
-      soft_skills: ["comunicación", "autonomía"],
-      experience_required: "3+ años",
-      seniority_level: "Semi-Senior",
-      match_score: 84,
-      link: "#",
-    },
-    {
-      job_title: `${keywords || "Frontend Developer"} - Product Team`,
-      company: "Lumen Labs",
-      tech_skills: ["javascript", "react", "redux", "graphql"],
-      soft_skills: ["agile", "problem solving"],
-      experience_required: "2+ años",
-      seniority_level: "Semi-Senior",
-      match_score: 76,
-      link: "#",
-    },
-    {
-      job_title: `${keywords || "Frontend Developer"} - E-commerce`,
-      company: `${location || "Remoto"} Commerce`,
-      tech_skills: ["vue", "typescript", "docker", "ci/cd"],
-      soft_skills: ["trabajo en equipo", "inglés"],
-      experience_required: "4+ años",
-      seniority_level: "Senior",
-      match_score: 69,
-      link: "#",
-    },
-  ];
-
-  return {
-    analyses: base.sort((a, b) => b.match_score - a.match_score),
-    best_match: base[0],
-    cv_optimization: {
-      job_title: base[0].job_title,
-      matching_skills: ["react", "typescript", "tailwind"],
-      missing_skills: ["testing", "web performance"],
-      recommendations:
-        "Resalta tu experiencia en componentes reutilizables, optimización de performance y colaboración con equipos de producto.",
-      relevant_experience:
-        "Experiencia liderando desarrollo UI con React + TypeScript en proyectos de alto tráfico.",
-    },
-    total_found: base.length,
-  };
-};
 
 const scoreLabel = (score) => {
   if (score >= 85) return "Match excelente 🚀";
@@ -128,7 +79,6 @@ function App() {
       setResults(data);
     } catch (err) {
       setError(err.message);
-      setResults(buildFallbackData(keywords, location));
     } finally {
       setLoading(false);
     }
@@ -370,6 +320,26 @@ function App() {
                       <span className="chip" key={skill}>⚙️ {skill}</span>
                     ))}
                   </div>
+                  {job.description && (
+                    <p className="muted" style={{ marginTop: '10px', fontSize: '0.85rem', lineHeight: '1.5' }}>
+                      {job.description}
+                    </p>
+                  )}
+                  {job.link && job.link !== '#' && (
+                    <a href={job.link} target="_blank" rel="noopener noreferrer" style={{
+                      display: 'inline-block',
+                      marginTop: '10px',
+                      padding: '8px 16px',
+                      borderRadius: '10px',
+                      background: 'linear-gradient(120deg, #67e8f9, #a5b4fc)',
+                      color: '#041524',
+                      fontWeight: '700',
+                      fontSize: '0.85rem',
+                      textDecoration: 'none'
+                    }}>
+                      Postularme →
+                    </a>
+                  )}
                 </div>
               ))}
 

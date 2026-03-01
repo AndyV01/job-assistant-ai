@@ -63,7 +63,8 @@ class AnalyzerAgent:
             "experience_required": experience_years,
             "seniority_level": seniority,
             "match_score": match_score,
-            "link": job['link']
+            "link": job['link'],
+            "description": job.get('description', '')
         }
         
         return analysis

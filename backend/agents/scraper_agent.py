@@ -99,35 +99,7 @@ class ScraperAgent:
         return found[:5] if found else ['javascript', 'html', 'css']
 
     def _get_mock_jobs(self, keywords: str) -> List[Dict]:
-        return [
-            {
-                "title": f"{keywords} - React TypeScript",
-                "company": "Tech Company Argentina",
-                "location": "Buenos Aires",
-                "link": "https://adzuna.com",
-                "description": f"Buscamos {keywords} con sólida experiencia en React y TypeScript.",
-                "salary": "$200,000 - $350,000",
-                "requirements": ["react", "typescript", "javascript"]
-            },
-            {
-                "title": f"Desarrollador {keywords} Semi-Senior",
-                "company": "Startup Digital",
-                "location": "CABA - Remoto",
-                "link": "https://adzuna.com",
-                "description": "Equipo ágil busca talento frontend con ganas de crecer.",
-                "salary": "$150,000 - $250,000",
-                "requirements": ["react", "css", "html", "git"]
-            },
-            {
-                "title": f"Senior {keywords} - Remoto",
-                "company": "Empresa de Tecnología",
-                "location": "Remoto - Argentina",
-                "link": "https://adzuna.com",
-                "description": "Buscamos perfil senior para liderar desarrollo frontend.",
-                "salary": "$400,000 - $600,000",
-                "requirements": ["react", "typescript", "next.js", "node.js"]
-            }
-        ]
+        return []
 
 
 if __name__ == "__main__":
