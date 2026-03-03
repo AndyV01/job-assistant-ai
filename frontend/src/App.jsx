@@ -355,6 +355,9 @@ function App() {
               </button>
             </div>
           </form>
+          <p className="cv-hint" style={{ marginBottom: '12px' }}>
+            // datos reales via Adzuna API · mercado Brasil/LATAM
+          </p>
           <div className="cv-row">
             <label className={`btn-cv ${cvLoaded ? "loaded" : ""}`}>
               {uploadingCV ? "[ LOADING... ]" : cvLoaded ? "[ ✓ CV LOADED ]" : "[ + UPLOAD CV ]"}
