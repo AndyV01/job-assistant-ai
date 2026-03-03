@@ -15,3 +15,4 @@ requests==2.32.5
 pypdf==6.7.3
 groq
 langchain-groq
+langgraph
