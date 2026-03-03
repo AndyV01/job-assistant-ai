@@ -119,11 +119,13 @@ Requisitos: {', '.join(requirements) if requirements else 'No especificados'}
         try:
             result = self.agent.invoke({"messages": [("human", input_text)]})
             output = result["messages"][-1].content
-            
-            analysis_data = json.loads(output)
 
             # Limpiar posibles backticks de markdown
             output = output.strip().replace("```json", "").replace("```", "").strip()
+            # que no esté vacío
+            if not output:
+              return self._fallback_analyze(job)
+            
             analysis_data = json.loads(output)
         
 
