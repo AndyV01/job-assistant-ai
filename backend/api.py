@@ -56,20 +56,24 @@ async def options_search(request: Request):
     )
 
 @app.post("/api/search")
-def search_jobs(request: SearchRequest):
+def search_jobs(request: SearchRequest,  req: Request):
     """
     Endpoint principal: busca trabajos y optimiza CV
     """
     try:
-        
-        results = langgraph_app.invoke({
+        thread_id = req.client.host
+
+        results = langgraph_app.invoke(
+            {
             "keywords": request.keywords,
             "location": request.location,
             "jobs": [],
             "analyses": [],
             "cv_optimization": {},
             "error": ""
-        })
+        },
+        config={"configurable": {"thread_id": thread_id}}
+        )
 
         if results.get("error"):
             return {

@@ -1,6 +1,5 @@
 """
-Agente 3: CV Optimizer con RAG
-Lee tu CV, lo vectoriza y lo optimiza según cada trabajo
+Agente 3: CV Optimizer 
 Usa Groq API (Llama 3.2) - gratuito en cloud
 """
 

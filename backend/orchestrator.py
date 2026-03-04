@@ -1,16 +1,16 @@
 """
-Orquestador con LangGraph - Reemplaza el orchestrator.py anterior
+Orquestador con LangGraph 
 """
 
-# PARTE 1 - imports
-from langgraph.graph import StateGraph, END
+from langgraph.graph import StateGraph, END 
+from langgraph.checkpoint.memory import MemorySaver
 from typing import TypedDict, List, Dict
 from agents.scraper_agent import ScraperAgent
 from agents.analyzer_agent import AnalyzerAgent
 from agents.cv_optimizer_agent import CVOptimizerAgent
 
 
-# PARTE 2 - state y agentes
+# state y agentes
 class JobAssistantState(TypedDict):
     keywords: str
     location: str
@@ -24,9 +24,9 @@ analyzer = AnalyzerAgent()
 cv_optimizer = CVOptimizerAgent()
 
 
-# PARTE 3 - nodos
+# nodos
 def nodo_scraper(state: JobAssistantState):
-    print("📍 PASO 1: Buscando ofertas...")
+    print("PASO 1: Buscando ofertas...")
     try:
         jobs = scraper.search_jobs(
             state["keywords"],
@@ -38,7 +38,7 @@ def nodo_scraper(state: JobAssistantState):
 
 
 def nodo_analyzer(state: JobAssistantState):
-    print("📊 PASO 2: Analizando ofertas...")
+    print("PASO 2: Analizando ofertas...")
     try:
         analyses = analyzer.analyze_multiple(state["jobs"])
         return {"analyses": analyses, "error": ""}
@@ -47,7 +47,7 @@ def nodo_analyzer(state: JobAssistantState):
 
 
 def nodo_cv_optimizer(state: JobAssistantState):
-    print("🔧 PASO 3: Optimizando CV...")
+    print("PASO 3: Optimizando CV...")
     try:
         mejor_trabajo = sorted(
             state["analyses"],
@@ -65,7 +65,7 @@ def nodo_error(state: JobAssistantState):
     return state
 
 
-# PARTE 4 - edges condicionales
+# edges condicionales
 def decidir_tras_scraper(state: JobAssistantState):
     if state["error"] or not state["jobs"]:
         return "error"
@@ -78,7 +78,7 @@ def decidir_tras_analyzer(state: JobAssistantState):
     return "cv_optimizer"
 
 
-# PARTE 5 - grafo
+# grafo
 grafo = StateGraph(JobAssistantState)
 
 # Agregás los nodos
@@ -97,24 +97,29 @@ grafo.add_conditional_edges("analyzer", decidir_tras_analyzer)
 # Edges fijos
 grafo.add_edge("cv_optimizer", END)
 grafo.add_edge("error", END)
-
+ 
+# memoria persistente 
+checkpointer = checkpointer = MemorySaver()
 # Compilás el grafo
-app = grafo.compile()
+app = grafo.compile(checkpointer=checkpointer)
 
 
-# PARTE 6 - ejecución
+# ejecución
 if __name__ == "__main__":
-    resultado = app.invoke({
+    resultado = app.invoke(
+        {
         "keywords": "Frontend Developer",
         "location": "Buenos Aires",
         "jobs": [],
         "analyses": [],
         "cv_optimization": {},
         "error": ""
-    })
+    },
+    config={"configurable": {"thread_id": "test_local"}}
+    )
 
     if resultado["error"]:
-        print(f"\n❌ Pipeline terminó con error: {resultado['error']}")
+        print(f"Pipeline terminó con error: {resultado['error']}")
     else:
         print("\n" + "="*60)
         print("📋 TOP 3 MEJORES MATCHES")
