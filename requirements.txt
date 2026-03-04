@@ -15,5 +15,4 @@ groq
 langchain-groq
 langgraph
 faiss-cpu
-langchain-huggingface
-sentence-transformers
+langchain-community

@@ -7,7 +7,7 @@ Usa Groq API (Llama 3.3) para generar recomendaciones.
 
 from langchain_community.document_loaders import PyPDFLoader #lee el PDF
 from langchain_text_splitters import RecursiveCharacterTextSplitter #divide en chunks
-from langchain_huggingface import HuggingFaceEmbeddings #vectoriza gratis
+from langchain_community.embeddings import FakeEmbeddings #vectoriza gratis
 from langchain_community.vectorstores import FAISS #guarda los vectores en memora
 from groq import Groq
 from typing import Dict, List
@@ -50,9 +50,7 @@ class CVOptimizerAgent:
          )
         chunks = splitter.create_documents([self.cv_text])
 
-        embeddings = HuggingFaceEmbeddings(
-        model_name="sentence-transformers/all-MiniLM-L6-v2"
-         )
+        embeddings = FakeEmbeddings(size=384)
 
         self.vectorstore = FAISS.from_documents(chunks, embeddings)
         print("✅ RAG inicializado con FAISS")
