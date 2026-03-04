@@ -18,6 +18,7 @@ class JobAssistantState(TypedDict):
     analyses: List[Dict]
     cv_optimization: Dict
     error: str
+    intentos: int
 
 scraper = ScraperAgent()
 analyzer = AnalyzerAgent()
@@ -32,7 +33,7 @@ def nodo_scraper(state: JobAssistantState):
             state["keywords"],
             state["location"]
         )
-        return {"jobs": jobs, "error": ""}
+        return {"jobs": jobs, "error": "", "intentos": state["intentos"] + 1}
     except Exception as e:
         return {"jobs": [], "error": str(e)}
 
@@ -75,6 +76,12 @@ def decidir_tras_scraper(state: JobAssistantState):
 def decidir_tras_analyzer(state: JobAssistantState):
     if state["error"] or not state["analyses"]:
         return "error"
+    promedio = sum(a["match_score"] for a in state["analyses"]) / len(state["analyses"])
+    
+    # Máximo 3 intentos para evitar loop infinito
+    if promedio < 20 and state["intentos"] < 3:
+        return "scraper"  
+    
     return "cv_optimizer"
 
 
@@ -113,7 +120,8 @@ if __name__ == "__main__":
         "jobs": [],
         "analyses": [],
         "cv_optimization": {},
-        "error": ""
+        "error": "",
+        "intentos": 0
     },
     config={"configurable": {"thread_id": "test_local"}}
     )
