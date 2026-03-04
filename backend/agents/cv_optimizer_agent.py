@@ -1,10 +1,14 @@
 """
-Agente 3: CV Optimizer 
-Usa Groq API (Llama 3.2) - gratuito en cloud
+Agente 3: CV Optimizer con RAG real
+Usa FAISS + HuggingFace Embeddings para vectorizar el CV
+y buscar chunks relevantes según cada oferta laboral.
+Usa Groq API (Llama 3.3) para generar recomendaciones.
 """
 
-from langchain_community.document_loaders import PyPDFLoader
-from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_community.document_loaders import PyPDFLoader #lee el PDF
+from langchain_text_splitters import RecursiveCharacterTextSplitter #divide en chunks
+from langchain_huggingface import HuggingFaceEmbeddings #vectoriza gratis
+from langchain_community.vectorstores import FAISS #guarda los vectores en memora
 from groq import Groq
 from typing import Dict, List
 import os
@@ -18,7 +22,7 @@ class CVOptimizerAgent:
         self.cv_path = cv_path
         self.client = Groq(api_key=os.getenv("GROQ_API_KEY"))
         self.cv_text = ""
-        
+        self.vectorstore = None #FASS con los chunks
         # Cargar CV
         self._load_cv()
         
@@ -31,16 +35,27 @@ class CVOptimizerAgent:
         if not os.path.exists(self.cv_path):
             print(f"⚠️ CV no encontrado en {self.cv_path}, usando CV mock...")
             self.cv_text = self._get_mock_cv()
-            return
-        
-        try:
-            loader = PyPDFLoader(self.cv_path)
-            documents = loader.load()
-            self.cv_text = "\n".join([doc.page_content for doc in documents])
-            print(f"   📊 CV cargado: {len(self.cv_text)} caracteres")
-        except Exception as e:
-            print(f"⚠️ Error cargando CV: {e}, usando mock...")
-            self.cv_text = self._get_mock_cv()
+        else:
+            try:
+                loader = PyPDFLoader(self.cv_path)
+                documents = loader.load()
+                self.cv_text = "\n".join([doc.page_content for doc in documents])
+                print(f"   📊 CV cargado: {len(self.cv_text)} caracteres")
+            except Exception as e:
+                print(f"⚠️ Error cargando CV: {e}, usando mock...")
+                self.cv_text = self._get_mock_cv()
+        splitter = RecursiveCharacterTextSplitter (
+        chunk_size=500,
+        chunk_overlap=50
+         )
+        chunks = splitter.create_documents([self.cv_text])
+
+        embeddings = HuggingFaceEmbeddings(
+        model_name="sentence-transformers/all-MiniLM-L6-v2"
+         )
+
+        self.vectorstore = FAISS.from_documents(chunks, embeddings)
+        print("✅ RAG inicializado con FAISS")
     
     def load_cv_from_text(self, text: str):
         """
@@ -50,29 +65,7 @@ class CVOptimizerAgent:
         print(f"✅ CV cargado desde upload: {len(text)} caracteres")
     
     def _get_mock_cv(self) -> str:
-        return """
-        ANDRÉS VALLARINO
-        Frontend Developer
-        
-        EXPERIENCIA:
-        - OpenDevPro (2024-2026): React, TypeScript, Next.js, Redux, Java, Material UI, CI/CD
-        - MeVuelo (2023-2024): React, TypeScript, Material UI, APIs terceros
-        - Idea Creativa Marketing (2021-2022): React, HTML5, CSS3, Bootstrap, Figma
-        
-        SKILLS TÉCNICAS:
-        - Frontend: React, TypeScript, Next.js, Vite, TailwindCSS, Redux
-        - Backend: Node.js, FastAPI, Python
-        - Tools: Git, GitHub Actions, CI/CD, Vercel, Railway
-        - IA: Arquitectura multi-agente, LangChain, RAG, Prompt Engineering
-        
-        PROYECTOS:
-        - Job Assistant AI: Sistema multi-agente con RAG, FastAPI, Adzuna API
-        - Arcana Mística: Multi-agente con Claude API, Serverless Functions
-        
-        EDUCACIÓN:
-        - Certificación IA Generativas (Desafío Latam 2025)
-        - Desarrollo Web Full Stack
-        """
+        return "CV no disponible. Analizá el trabajo de forma general sin comparar con un CV específico."
     
     def optimize_for_job(self, job_analysis: Dict) -> Dict:
         """
@@ -84,8 +77,10 @@ class CVOptimizerAgent:
         
         print(f"\n🔧 Optimizando CV para: {job_title}")
         
-        # Truncar CV si es muy largo (Groq tiene límite de tokens)
-        cv_context = self.cv_text[:3000] if len(self.cv_text) > 3000 else self.cv_text
+       # RAG - busca solo los chunks relevantes del CV para este trabajo
+        query = f"{job_title} {' '.join(required_skills)}"
+        relevant_chunks = self.vectorstore.similarity_search(query, k=3)  # ← trae los 3 chunks más relevantes
+        cv_context = "\n".join([chunk.page_content for chunk in relevant_chunks])
         
         prompt = f"""Eres un experto en optimización de CVs para tech jobs.
 
@@ -94,7 +89,7 @@ TRABAJO:
 - Seniority: {seniority}
 - Skills requeridas: {', '.join(required_skills)}
 
-MI CV:
+MI CV (partes relevantes):
 {cv_context}
 
 TAREA:
@@ -117,8 +112,9 @@ Respondé en español, formato claro y conciso. Máximo 200 palabras."""
             recommendations = f"Revisá tu experiencia con {', '.join(required_skills[:3])} para este rol."
         
         cv_lower = self.cv_text.lower()
-        matching = [s for s in required_skills if s.lower() in cv_lower]
-        missing = [s for s in required_skills if s.lower() not in cv_lower]
+        matching = [s for s in required_skills if s.lower().replace(".", "").replace("-", "") 
+            in cv_lower.replace(".", "").replace("-", "")]
+        missing = [s for s in required_skills if s not in matching]
         
         return {
             "job_title": job_title,
@@ -130,10 +126,6 @@ Respondé en español, formato claro y conciso. Máximo 200 palabras."""
 
 
 if __name__ == "__main__":
-    print("\n" + "="*60)
-    print("TEST: CV OPTIMIZER CON GROQ")
-    print("="*60 + "\n")
-    
     optimizer = CVOptimizerAgent()
     
     job_analysis = {
