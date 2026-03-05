@@ -70,7 +70,8 @@ def search_jobs(request: SearchRequest,  req: Request):
             "jobs": [],
             "analyses": [],
             "cv_optimization": {},
-            "error": ""
+            "error": "",
+            "intentos": 0
         },
         config={"configurable": {"thread_id": thread_id}}
         )
