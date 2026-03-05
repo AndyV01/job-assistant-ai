@@ -9,6 +9,9 @@ from langchain_community.document_loaders import PyPDFLoader #lee el PDF
 from langchain_text_splitters import RecursiveCharacterTextSplitter #divide en chunks
 from langchain_community.embeddings import FakeEmbeddings #vectoriza gratis
 from langchain_community.vectorstores import FAISS #guarda los vectores en memora
+from langchain_core.prompts import ChatPromptTemplate #arma el prompt de forma estructurada
+from langchain_groq import ChatGroq #conecta con Groq LLM
+
 from groq import Groq
 from typing import Dict, List
 import os
@@ -73,19 +76,19 @@ class CVOptimizerAgent:
         required_skills = job_analysis.get('tech_skills', [])
         seniority = job_analysis.get('seniority_level', '')
         
-        print(f"\n🔧 Optimizando CV para: {job_title}")
         
        # RAG - busca solo los chunks relevantes del CV para este trabajo
         query = f"{job_title} {' '.join(required_skills)}"
         relevant_chunks = self.vectorstore.similarity_search(query, k=3)  # ← trae los 3 chunks más relevantes
         cv_context = "\n".join([chunk.page_content for chunk in relevant_chunks])
         
-        prompt = f"""Eres un experto en optimización de CVs para tech jobs.
-
+        prompt = ChatPromptTemplate.from_messages([
+    ("system", "Eres un experto en optimización de CVs para tech jobs. Respondé siempre en español, formato claro y conciso. Máximo 200 palabras."),
+    ("human", """
 TRABAJO:
 - Puesto: {job_title}
 - Seniority: {seniority}
-- Skills requeridas: {', '.join(required_skills)}
+- Skills requeridas: {required_skills}
 
 MI CV (partes relevantes):
 {cv_context}
@@ -95,23 +98,32 @@ TAREA:
 2. Identificá qué skills me faltan
 3. Sugerí cómo destacar mi experiencia relevante
 4. Recomendá qué agregar o enfatizar
-
-Respondé en español, formato claro y conciso. Máximo 200 palabras."""
+""")
+])
 
         try:
-            response = self.client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
-                messages=[{"role": "user", "content": prompt}],
-                max_tokens=400
+            llm = ChatGroq(
+            api_key=os.getenv("GROQ_API_KEY"),
+            model="llama-3.3-70b-versatile"
             )
-            recommendations = response.choices[0].message.content
+            chain = prompt | llm  # ← conecta prompt con LLM
+            response = chain.invoke({
+               "job_title": job_title,
+               "seniority": seniority,
+               "required_skills": ', '.join(required_skills),
+               "cv_context": cv_context
+            })
+            recommendations = response.content 
         except Exception as e:
             print(f"⚠️ Error Groq: {e}")
             recommendations = f"Revisá tu experiencia con {', '.join(required_skills[:3])} para este rol."
         
-        cv_lower = self.cv_text.lower()
+        
+        # Skills del CV para el matching
+        SKILLS_CV = "react typescript nextjs next redux nodejs fastapi python git cicd vercel railway tailwind vite"
+
         matching = [s for s in required_skills if s.lower().replace(".", "").replace("-", "") 
-            in cv_lower.replace(".", "").replace("-", "")]
+         in SKILLS_CV]
         missing = [s for s in required_skills if s not in matching]
         
         return {
