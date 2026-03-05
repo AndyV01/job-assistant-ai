@@ -13,6 +13,7 @@ load_dotenv()
 from langchain_groq import ChatGroq
 from langchain_core.tools import tool
 from langgraph.prebuilt import create_react_agent
+from langchain_core.output_parsers import JsonOutputParser # parsea el JSON automático
 
 
 # ─── Tools del agente ────────────────────────────────────────────────────────
@@ -89,7 +90,7 @@ class AnalyzerAgent:
 
         self.tools = [extract_tech_skills, detect_seniority_level, calculate_match_score]
 
-        system_prompt = """Eres un agente experto en análisis de ofertas laborales tech.
+        self.system_prompt = """Eres un agente experto en análisis de ofertas laborales tech.
 Usá las tools disponibles para analizar la oferta y luego respondé ÚNICAMENTE con un JSON válido, sin texto adicional, sin explicaciones, solo el JSON:
 {
   "tech_skills": ["skill1", "skill2"],
@@ -98,7 +99,7 @@ Usá las tools disponibles para analizar la oferta y luego respondé ÚNICAMENTE
   "experience_required": "3+ años"
 }"""
 
-        self.agent = create_react_agent(self.llm, self.tools, prompt=system_prompt)
+        self.agent = create_react_agent(self.llm, self.tools, prompt=self.system_prompt)
 
         print("✅ Analyzer Agent listo")
 
@@ -117,16 +118,11 @@ Requisitos: {', '.join(requirements) if requirements else 'No especificados'}
 """
 
         try:
-            result = self.agent.invoke({"messages": [("human", input_text)]})
-            output = result["messages"][-1].content
+            parser = JsonOutputParser()
 
-            # Limpiar posibles backticks de markdown
-            output = output.strip().replace("```json", "").replace("```", "").strip()
-            # que no esté vacío
-            if not output:
-              return self._fallback_analyze(job)
-            
-            analysis_data = json.loads(output)
+            chain = self.llm | parser  # conecta el agente con el parser
+
+            analysis_data = chain.invoke(f"{self.system_prompt}\n\n{input_text}")
         
 
             return {
