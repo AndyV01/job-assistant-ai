@@ -193,7 +193,7 @@ El proyecto demuestra:
 ✅ **LLM con tool calling real** via Groq + LangChain  
 ✅ **RAG real** con FAISS + embeddings para análisis de CV  
 ✅ **Memoria persistente** con LangGraph MemorySaver  
-✅ **Retry logic y control de errores** con edges condicionales 
+✅ **Retry logic y control de errores** con edges condicionales   
 ✅ **Datos reales** via Adzuna API en local y producción  
 ✅ **CV Optimizer** con upload de CV en tiempo real  
 ✅ **Backend Python + FastAPI** deployado en Railway  
