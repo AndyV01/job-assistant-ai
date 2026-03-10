@@ -139,12 +139,5 @@ if __name__ == "__main__":
             print(f"   ⭐ Match: {analysis['match_score']}/100")
             print(f"   💻 Skills: {', '.join(analysis['tech_skills'][:3])}")
 
-        print("\n" + "="*60)
-        print("💡 OPTIMIZACIÓN DE CV")
-        print("="*60)
-
         opt = resultado["cv_optimization"]
-        print(f"\n🎯 Trabajo: {opt['job_title']}")
-        print(f"\n✅ Skills que tenés: {', '.join(opt['matching_skills'])}")
-        print(f"\n❌ Skills faltantes: {', '.join(opt['missing_skills']) if opt['missing_skills'] else 'Ninguna'}")
-        print(f"\n{opt['recommendations'][:500]}...")
+        

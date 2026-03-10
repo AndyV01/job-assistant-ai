@@ -30,7 +30,7 @@ print("✅ Sistema listo")
 # Modelos de datos
 class SearchRequest(BaseModel):
     keywords: str
-    location: str = "Buenos Aires"
+    location: str = "Brasil"
 
 @app.get("/")
 def root():

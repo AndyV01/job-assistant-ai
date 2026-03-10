@@ -1,6 +1,5 @@
 """
 Agente 1: Scraper usando Adzuna API - Datos reales de empleos
-Registro gratuito en: https://developer.adzuna.com
 """
 
 import requests
@@ -11,11 +10,10 @@ from typing import List, Dict
 
 class ScraperAgent:
     def __init__(self, app_id: str = None, app_key: str = None):
-        # Reemplazá con tus credenciales de developer.adzuna.com
         self.app_id = app_id or os.getenv("ADZUNA_APP_ID")
         self.app_key = app_key or os.getenv("ADZUNA_APP_KEY")
         self.base_url = "https://api.adzuna.com/v1/api/jobs"
-        self.country = "br"  # Brasil
+        self.country = "br"  # Brasil es free con adzuna api
 
     def search_jobs(self, keywords: str, location: str = "Brasil") -> List[Dict]:
         """
