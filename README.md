@@ -9,6 +9,7 @@
 ![LangGraph](https://img.shields.io/badge/LangGraph-Multi--Agent-4B8BBE)
 ![RAG](https://img.shields.io/badge/RAG-FAISS%20%2B%20Embeddings-00ADD8)
 ![Groq](https://img.shields.io/badge/Groq-LLM%20Cloud-F55036?logo=groq&logoColor=white)
+![LangSmith](https://img.shields.io/badge/LangSmith-Observability-FF6B35)
 
 Asistente de búsqueda laboral potenciado por IA con arquitectura multi-agente. El sistema unifica tres tareas clave en un solo flujo: encontrar ofertas, analizar su ajuste técnico y optimizar el CV para mejorar la postulación.
 
@@ -78,8 +79,50 @@ Buscar trabajo en tecnología suele ser un proceso manual y repetitivo:
 - **LangGraph** para el grafo de estados multi-agente con memoria persistente.
 - **Groq API** para inferencia LLM en cloud (Llama 3 via tool calling).
 - **Adzuna API** para obtención de ofertas reales.
+- **LangSmith** para observabilidad, tracing y monitoreo del pipeline multi-agente.
 
 ---
+## 🔭 Observabilidad con LangSmith
+
+El sistema cuenta con **tracing completo** de todo el pipeline multi-agente usando [LangSmith](https://smith.langchain.com).
+
+### Qué se trackea
+
+Cada ejecución del pipeline queda registrada con:
+
+- **Latencia por nodo** — cuánto tarda cada agente de forma aislada.
+- **Tokens consumidos** — por llamada al LLM y total del pipeline.
+- **Llamadas al LLM** — input y output de cada invocación a Llama 3.3 via Groq.
+- **Metadata por request** — keywords, location, user_ip.
+- **Tags por entorno** — `api`, `production`, nombre de la location.
+- **Errores con contexto** — qué nodo falló, cuántos jobs se encontraron, cuántos análisis se generaron.
+
+### Nodos trackeados
+
+| Nodo | Trace name | Tags en error |
+|------|-----------|---------------|
+| `nodo_scraper` | `Scraper - Buscar ofertas` | `scraper-error` |
+| `nodo_analyzer` | `Analyzer - Analizar ofertas` | `analyzer-error` |
+| `nodo_cv_optimizer` | `CV Optimizer - Optimizar CV` | `cv-optimizer-error` |
+| `nodo_error` | `Error Handler - Pipeline Failed` | `pipeline-error`, `intentos-N` |
+| Request API | `API - Search Jobs Request` | `api`, `production` |
+
+### Metadata capturada en errores
+
+Cuando cualquier nodo falla, LangSmith registra automáticamente:
+
+```json
+{
+  "error_type": "ExceptionType",
+  "error_message": "descripción del error",
+  "fallo_en": "scraper | analyzer | cv_optimizer",
+  "intentos_realizados": 2,
+  "jobs_encontrados": 5,
+  "analyses_generados": 0,
+  "keywords": "Frontend Developer",
+  "location": "Brasil"
+}
+```
 
 ## 🚀 Ejecución local
 
@@ -98,7 +141,7 @@ source .venv/bin/activate  # Linux/macOS
 # .venv\Scripts\activate   # Windows PowerShell
 
 pip install --upgrade pip
-pip install fastapi uvicorn langchain langchain-community langchain-groq groq pypdf beautifulsoup4 requests python-dotenv python-multipart faiss-cpu
+pip install fastapi uvicorn langchain langchain-community langchain-groq groq pypdf beautifulsoup4 requests python-dotenv python-multipart faiss-cpu langsmith
 ```
 
 Ejecutar API:
@@ -165,6 +208,7 @@ scraper → analyzer → cv_optimizer → END
 - **Retry logic:** si el score promedio es menor a 20, vuelve a buscar ofertas (máximo 3 intentos).
 - **Memoria persistente:** usa `MemorySaver` para mantener el estado entre ejecuciones.
 - **Control de errores:** cada nodo tiene su propio manejo de excepciones con edge al nodo `error`.
+- **Observabilidad:** cada nodo decorado con `@traceable` para tracing completo en LangSmith.
 
 ---
 
