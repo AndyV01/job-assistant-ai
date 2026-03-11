@@ -41,7 +41,17 @@ def nodo_scraper(state: JobAssistantState):
         )
         return {"jobs": jobs, "error": "", "intentos": state["intentos"] + 1}
     except Exception as e:
-        return {"jobs": [], "error": str(e)}
+        from langsmith import get_current_run_tree
+        run = get_current_run_tree()
+        if run:
+            run.add_metadata({
+                "error_type": type(e).__name__,
+                "error_message": str(e),
+                "keywords": state["keywords"],
+                "location": state["location"]
+            })
+            run.add_tags(["scraper-error"])
+        return {"jobs": [], "error": str(e), "intentos": state["intentos"] + 1}
 
 
 @traceable(name="Analyzer - Analizar ofertas")
@@ -51,6 +61,15 @@ def nodo_analyzer(state: JobAssistantState):
         analyses = analyzer.analyze_multiple(state["jobs"])
         return {"analyses": analyses, "error": ""}
     except Exception as e:
+        from langsmith import get_current_run_tree
+        run = get_current_run_tree()
+        if run:
+            run.add_metadata({
+                "error_type": type(e).__name__,
+                "error_message": str(e),
+                "jobs_recibidos": len(state.get("jobs", []))
+            })
+            run.add_tags(["analyzer-error"])
         return {"analyses": [], "error": str(e)}
 
 
@@ -66,11 +85,46 @@ def nodo_cv_optimizer(state: JobAssistantState):
         cv = cv_optimizer.optimize_for_job(mejor_trabajo)
         return {"cv_optimization": cv, "error": ""}
     except Exception as e:
+        from langsmith import get_current_run_tree
+        run = get_current_run_tree()
+        if run:
+            run.add_metadata({
+                "error_type": type(e).__name__,
+                "error_message": str(e),
+                "analyses_disponibles": len(state.get("analyses", []))
+            })
+            run.add_tags(["cv-optimizer-error"])
         return {"cv_optimization": {}, "error": str(e)}
 
 
+@traceable(
+    name="Error Handler - Pipeline Failed",
+    tags=["error"]
+)
 def nodo_error(state: JobAssistantState):
-    print(f"❌ Error en el pipeline: {state['error']}")
+    from langsmith import get_current_run_tree
+    
+    error_msg = state.get("error", "Error desconocido")
+    intentos = state.get("intentos", 0)
+    jobs_encontrados = len(state.get("jobs", []))
+    analyses_generados = len(state.get("analyses", []))
+    
+    print(f"❌ Error en el pipeline: {error_msg}")
+    
+    # Contexto completo del error para LangSmith
+    run = get_current_run_tree()
+    if run:
+        run.add_metadata({
+            "error_message": error_msg,
+            "intentos_realizados": intentos,
+            "jobs_encontrados": jobs_encontrados,
+            "analyses_generados": analyses_generados,
+            "keywords": state.get("keywords", ""),
+            "location": state.get("location", ""),
+            "fallo_en": "scraper" if not jobs_encontrados else "analyzer" if not analyses_generados else "cv_optimizer"
+        })
+        run.add_tags(["pipeline-error", f"intentos-{intentos}"])
+    
     return state
 
 
