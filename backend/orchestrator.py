@@ -8,7 +8,12 @@ from typing import TypedDict, List, Dict
 from agents.scraper_agent import ScraperAgent
 from agents.analyzer_agent import AnalyzerAgent
 from agents.cv_optimizer_agent import CVOptimizerAgent
+# metricas y debuggear agentes
+from langsmith import traceable
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
 
 # state y agentes
 class JobAssistantState(TypedDict):
@@ -26,6 +31,7 @@ cv_optimizer = CVOptimizerAgent()
 
 
 # nodos
+@traceable(name="Scraper - Buscar ofertas")
 def nodo_scraper(state: JobAssistantState):
     print("PASO 1: Buscando ofertas...")
     try:
@@ -38,6 +44,7 @@ def nodo_scraper(state: JobAssistantState):
         return {"jobs": [], "error": str(e)}
 
 
+@traceable(name="Analyzer - Analizar ofertas")
 def nodo_analyzer(state: JobAssistantState):
     print("PASO 2: Analizando ofertas...")
     try:
@@ -47,6 +54,7 @@ def nodo_analyzer(state: JobAssistantState):
         return {"analyses": [], "error": str(e)}
 
 
+@traceable(name="Analyzer - Analizar ofertas")
 def nodo_cv_optimizer(state: JobAssistantState):
     print("PASO 3: Optimizando CV...")
     try:
@@ -123,7 +131,11 @@ if __name__ == "__main__":
         "error": "",
         "intentos": 0
     },
-    config={"configurable": {"thread_id": "test_local"}}
+    config={
+        "configurable": {"thread_id": "test_local"},
+        "run_name": "test-local-run",
+        "tags": ["local", "test"]
+    }
     )
 
     if resultado["error"]:

@@ -6,9 +6,13 @@ from fastapi import FastAPI, Request, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from fastapi.responses import JSONResponse
+from langsmith import traceable
+from dotenv import load_dotenv
 from orchestrator import app as langgraph_app
 import shutil
 import os
+
+load_dotenv()
 
 app = FastAPI(title="Job Assistant AI API")
 
@@ -56,6 +60,11 @@ async def options_search(request: Request):
     )
 
 @app.post("/api/search")
+@traceable(
+    name="API - Search Jobs Request",
+    tags=["api", "production"],
+    metadata={"endpoint": "/api/search"}
+)
 def search_jobs(request: SearchRequest,  req: Request):
     """
     Endpoint principal: busca trabajos y optimiza CV
@@ -73,7 +82,16 @@ def search_jobs(request: SearchRequest,  req: Request):
             "error": "",
             "intentos": 0
         },
-        config={"configurable": {"thread_id": thread_id}}
+        config={
+            "configurable": {"thread_id": thread_id},
+             "run_name": f"search-{request.keywords}-{request.location}",
+                "tags": ["api", request.location.lower()],
+                "metadata": {
+                    "keywords": request.keywords,
+                    "location": request.location,
+                    "user_ip": thread_id
+                }
+            }
         )
 
         if results.get("error"):
