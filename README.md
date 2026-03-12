@@ -53,6 +53,8 @@ Buscar trabajo en tecnología suele ser un proceso manual y repetitivo:
 │ coordina el flujo extremo a extremo              │
 ├──────────────────────────────────────────────────┤
 │ 1) ScraperAgent  → obtiene ofertas reale         │
+│    · Adzuna API  → Brasil                        │
+│    · JSearch API → Argentina, Chile, Uruguay     │
 │ 2) AnalyzerAgent → LLM + JsonOutputParser        │
 │                    (Groq + LangChain)            │
 │ 3) CVOptimizerAgent → RAG con FAISS +            │
@@ -82,6 +84,22 @@ Buscar trabajo en tecnología suele ser un proceso manual y repetitivo:
 - **LangSmith** para observabilidad, tracing y monitoreo del pipeline multi-agente.
 
 ---
+
+## 🌎 Cobertura de mercados Latam
+
+El scraper enruta automáticamente según el país seleccionado:
+
+| País | API | Fuente de datos |
+|------|-----|----------------|
+| 🇧🇷 Brasil | Adzuna API | Ofertas reales del mercado brasileño |
+| 🇦🇷 Argentina | JSearch (RapidAPI) | Google for Jobs · LinkedIn · Indeed AR · Jooble |
+| 🇨🇱 Chile | JSearch (RapidAPI) | Google for Jobs · LinkedIn · Indeed CL |
+| 🇺🇾 Uruguay | JSearch (RapidAPI) | Google for Jobs · LinkedIn · Indeed UY |
+
+El sistema selecciona la API correcta automáticamente — el usuario solo elige el país en el formulario.
+
+---
+
 ## 🔭 Observabilidad con LangSmith
 
 El sistema cuenta con **tracing completo** de todo el pipeline multi-agente usando [LangSmith](https://smith.langchain.com).
@@ -120,7 +138,7 @@ Cuando cualquier nodo falla, LangSmith registra automáticamente:
   "jobs_encontrados": 5,
   "analyses_generados": 0,
   "keywords": "Frontend Developer",
-  "location": "Brasil"
+  "location": "Argentina"
 }
 ```
 
@@ -190,7 +208,7 @@ Ejemplo de request:
 ```json
 {
   "keywords": "Backend Developer",
-  "location": "Brasil"
+  "location": "Argentina"
 }
 ```
 ---
@@ -226,8 +244,12 @@ El `CVOptimizerAgent` implementa **RAG (Retrieval-Augmented Generation)** real:
 
 ## ℹ️ Fuente de datos
 
-**En entorno local:** el sistema obtiene datos reales via **Adzuna API** (mercado Brasil/LATAM).  
-**En producción cloud:** datos reales via Adzuna API. La demo en Vercel está completamente funcional.
+El sistema enruta automáticamente según el mercado seleccionado:
+
+- **Brasil** → Adzuna API (free tier oficial para Brasil)
+- **Argentina, Chile, Uruguay** → JSearch via RapidAPI (Google for Jobs + LinkedIn + Indeed Latam)
+
+Todos los datos son reales y en tiempo real. La demo en Vercel está completamente funcional.
 
 ### Arquitectura Completa
 
@@ -244,24 +266,19 @@ El proyecto demuestra:
 ✅ **Frontend React** deployado en Vercel  
 ✅ **Integración end-to-end** completa 
 
-### Roadmap de Scraping Real
+### Roadmap de Scraping 
 
-**Opciones para implementar en producción:**
+**APIs implementadas:**
 
-1. **APIs Oficiales** ✅ Implementado
-   - Adzuna API (activo en local)
-   - LinkedIn Jobs API (pendiente)
-   - Indeed Publisher API (pendiente)
+1. **Adzuna API** ✅ Activo — Brasil
+2. **JSearch via RapidAPI** ✅ Activo — Argentina, Chile, Uruguay
 
-2. **Scraping con Proxies**
-   - ScraperAPI / Bright Data
-   - Rotación de User Agents
-   - Rate limiting inteligente
+**Próximas integraciones:**
+- LinkedIn Jobs API oficial
+- Indeed Publisher API
+- Expansión a Colombia, México, Perú
 
-3. **Agregadores Públicos**
-   - RSS feeds de empresas
-   - Boards públicos sin protección
-   - APIs no oficiales (RapidAPI)
+---
 
 ## 🎯 Valor del Proyecto
 
@@ -269,6 +286,8 @@ Este proyecto demuestra:
 
 - **Arquitectura de sistemas complejos** con múltiples componentes
 - **Integración de IA moderna** ( LLMs, LangChain, LangGraph, RAG )
+- **Observabilidad production-grade** con LangSmith tracing
+- **Cobertura multi-mercado Latam** con enrutamiento inteligente por país
 - **Full-stack deployment** en infraestructura cloud
 - **Diseño de APIs RESTful** con FastAPI
 - **Frontend moderno** con React + Vite
@@ -284,7 +303,7 @@ Para mantener una experiencia estable y evitar bloqueos en fuentes externas:
 - Evita ejecuciones masivas o automatizadas en ráfaga.
 - Espera algunos segundos entre búsquedas consecutivas.
 - Limita pruebas de carga a entornos controlados.
-- Si integras nuevas fuentes de scraping, respeta términos de uso y robots.txt cuando aplique.
+- El plan gratuito de JSearch permite 200 requests/mes.
 
 ---
 
@@ -294,7 +313,7 @@ Para mantener una experiencia estable y evitar bloqueos en fuentes externas:
 job-assistant-ai/
 ├── backend/
 │   ├── agents/
-│   │   ├── scraper_agent.py
+│   │   ├── scraper_agent.py     # Adzuna (Brasil) + JSearch (AR/CL/UY)
 │   │   ├── analyzer_agent.py
 │   │   └── cv_optimizer_agent.py
 │   ├── api.py

@@ -348,7 +348,7 @@ function App() {
               </label>
               <label className="input-wrap">
                 <span className="input-icon">@</span>
-                <input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="ubicación · ej: brasil" />
+                <input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="ubicación · ej: Argentina" />
               </label>
               <button className="btn-search" type="submit" disabled={loading}>
                 {loading ? "RUNNING..." : "EXEC →"}
@@ -356,7 +356,7 @@ function App() {
             </div>
           </form>
           <p className="cv-hint" style={{ marginBottom: '12px' }}>
-            // datos reales via Adzuna API · mercado Brasil/LATAM
+           // datos reales · Brasil via Adzuna · Argentina, Chile y Uruguay via JSearch (200 req/mes)
           </p>
           <div className="cv-row">
             <label className={`btn-cv ${cvLoaded ? "loaded" : ""}`}>
