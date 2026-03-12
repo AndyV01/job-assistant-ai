@@ -1,5 +1,5 @@
 """
-Agente 1: Scraper usando Adzuna API - Datos reales de empleos
+Agente 1: Scraper usando Adzuna API (Brasil) y JSearch API (Argentina, Chile, Uruguay)
 """
 
 import requests
@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 load_dotenv()
 from typing import List, Dict
 
+
 class ScraperAgent:
     def __init__(self, app_id: str = None, app_key: str = None):
         self.app_id = app_id or os.getenv("ADZUNA_APP_ID")
@@ -15,16 +16,40 @@ class ScraperAgent:
         self.base_url = "https://api.adzuna.com/v1/api/jobs"
         self.country = "br"  # Brasil es free con adzuna api
 
-    def search_jobs(self, keywords: str, location: str = "Brasil") -> List[Dict]:
+    def search_jobs(self, keywords: str, location: str) -> List[Dict]:
         """
-        Busca empleos reales usando Adzuna API
+        Busca empleos reales.
+        Adzuna para Brasil, JSearch para Argentina, Chile y Uruguay.
+        """
+        print(f"🔍 Buscando: {keywords} en {location}...")
+
+        paises_adzuna = ["brasil", "brazil"]
+        paises_jsearch = ["argentina", "chile", "uruguay"]
+        location_lower = location.lower()
+
+        if location_lower in paises_adzuna:
+            if self.app_id and self.app_key:
+                jobs = self._search_adzuna(keywords, location)
+                if jobs:
+                    return jobs
+
+        if location_lower in paises_jsearch or location_lower not in paises_adzuna:
+            jobs = self._search_jsearch(keywords, location)
+            if jobs:
+                return jobs
+
+        print("⚠️ Sin resultados en APIs, usando mock")
+        return self._get_mock_jobs(keywords)
+
+    def _search_adzuna(self, keywords: str, location: str) -> List[Dict]:
+        """
+        Busca empleos usando Adzuna API — solo Brasil (free tier)
         """
         print(f"🔍 Buscando en Adzuna: {keywords} en {location}...")
 
-        # Si no hay credenciales configuradas, usar mock
         if not self.app_id or not self.app_key:
-            print("⚠️ Credenciales no configuradas, usando mock")
-            return self._get_mock_jobs(keywords)
+            print("⚠️ Credenciales Adzuna no configuradas")
+            return []
 
         try:
             url = f"{self.base_url}/{self.country}/search/1"
@@ -39,15 +64,15 @@ class ScraperAgent:
             response = requests.get(url, params=params, timeout=10)
 
             if response.status_code != 200:
-                print(f"⚠️ Status {response.status_code}, usando mock")
-                return self._get_mock_jobs(keywords)
+                print(f"⚠️ Adzuna status {response.status_code}")
+                return []
 
             data = response.json()
             results = data.get("results", [])
 
             if not results:
-                print("⚠️ Sin resultados, usando mock")
-                return self._get_mock_jobs(keywords)
+                print("⚠️ Adzuna sin resultados")
+                return []
 
             jobs = []
             for job in results:
@@ -79,12 +104,96 @@ class ScraperAgent:
                 except Exception:
                     continue
 
-            print(f"✅ {len(jobs)} ofertas reales de Adzuna Argentina")
+            print(f"✅ {len(jobs)} ofertas reales de Adzuna Brasil")
             return jobs
 
         except Exception as e:
-            print(f"❌ Error: {e}")
-            return self._get_mock_jobs(keywords)
+            print(f"❌ Error Adzuna: {e}")
+            return []
+
+    def _search_jsearch(self, keywords: str, location: str) -> List[Dict]:
+        """
+        Busca empleos usando JSearch API (RapidAPI)
+        Cubre Argentina, Chile, Uruguay y toda Latam
+        """
+        print(f"🔍 Buscando en JSearch: {keywords} en {location}...")
+
+        rapidapi_key = os.getenv("RAPIDAPI_KEY")
+        if not rapidapi_key:
+            print("⚠️ RAPIDAPI_KEY no configurada")
+            return []
+        country_codes = {
+         "argentina": "ar",
+         "chile": "cl",
+         "uruguay": "uy",
+         "brasil": "br",
+         "brazil": "br"
+}
+        country_code = country_codes.get(location.lower(), "ar")
+        try:
+            url = "https://jsearch.p.rapidapi.com/search"
+            headers = {
+                "X-RapidAPI-Key": rapidapi_key,
+                "X-RapidAPI-Host": "jsearch.p.rapidapi.com"
+            }
+            params = {
+                "query": f"{keywords} {location}",
+                "page": "1",
+                "num_pages": "1",
+                "date_posted": "all",
+                "country": country_code,
+                "language": "es"
+            }
+
+            response = requests.get(url, headers=headers, params=params, timeout=30)
+
+            if response.status_code != 200:
+                print(f"⚠️ JSearch status {response.status_code}")
+                return []
+
+            data = response.json()
+            results = data.get("data", [])
+
+            if not results:
+                print("⚠️ JSearch sin resultados")
+                return []
+
+            jobs = []
+            for job in results:
+                try:
+                    title = job.get("job_title", "Sin título")
+                    company = job.get("employer_name", "Empresa Confidencial")
+                    location_name = job.get("job_city") or job.get("job_country") or location
+                    description = job.get("job_description", "")[:250]
+                    link = job.get("job_apply_link") or job.get("job_google_link", "")
+                    salary_min = job.get("job_min_salary")
+                    salary_max = job.get("job_max_salary")
+
+                    salary = ""
+                    if salary_min and salary_max:
+                        salary = f"${salary_min:,.0f} - ${salary_max:,.0f}"
+                    elif salary_min:
+                        salary = f"Desde ${salary_min:,.0f}"
+
+                    jobs.append({
+                        "title": title,
+                        "company": company,
+                        "location": location_name,
+                        "link": link,
+                        "description": description,
+                        "salary": salary,
+                        "requirements": self._extract_keywords(title + " " + description)
+                    })
+
+                except Exception:
+                    continue
+
+            print(f"✅ {len(jobs)} ofertas encontradas via JSearch")
+            return jobs
+
+        except Exception as e:
+            print(f"❌ Error JSearch: {e}")
+            return []
 
     def _extract_keywords(self, text: str) -> List[str]:
         tech = [
@@ -102,7 +211,7 @@ class ScraperAgent:
 
 if __name__ == "__main__":
     agent = ScraperAgent()
-    jobs = agent.search_jobs("Frontend Developer")
+    jobs = agent.search_jobs("Frontend Developer", "Argentina")
     for i, job in enumerate(jobs, 1):
         print(f"\n{i}. {job['title']}")
         print(f"   🏢 {job['company']}")
