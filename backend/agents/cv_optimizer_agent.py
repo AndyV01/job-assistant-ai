@@ -97,6 +97,7 @@ class CVOptimizerAgent:
         except Exception as e:
             print(f"⚠️ FAISS no disponible ({e}), usando fallback simple en memoria")
             self.vectorstore = SimpleVectorStore(chunks)
+
         print(f"✅ CV cargado desde upload: {len(text)} caracteres")
         print("✅ Vectorstore del CV actualizado")
     
