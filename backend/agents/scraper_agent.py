@@ -157,10 +157,10 @@ class ScraperAgent:
             jobs = []
             for job in results:
                 try:
-                    title = job.get("job_title", "Sin título")
-                    company = job.get("employer_name", "Empresa Confidencial")
-                    location_name = job.get("job_city") or job.get("job_country") or location
-                    description = job.get("job_description", "")[:250]
+                    title = str(job.get("job_title") or "Sin título")
+                    company = str(job.get("employer_name") or "Empresa Confidencial")
+                    location_name = str(job.get("job_city") or job.get("job_country") or location)
+                    description = str(job.get("job_description") or "")[:250]
                     link = job.get("job_apply_link") or job.get("job_google_link", "")
                     salary_min = job.get("job_min_salary")
                     salary_max = job.get("job_max_salary")
@@ -179,6 +179,10 @@ class ScraperAgent:
 
                 except Exception:
                     continue
+
+            if not jobs:
+                print("⚠️ JSearch devolvió resultados, pero no se pudieron parsear ofertas válidas")
+                return []
 
             print(f"✅ {len(jobs)} ofertas encontradas via JSearch")
             return jobs
@@ -199,14 +203,19 @@ class ScraperAgent:
 
     def _format_salary(self, salary_min, salary_max) -> str:
         def _to_float(value):
-            if value is None:
+
+            try:
+                if value is None:
+                    return None
+                if isinstance(value, (int, float)):
+                    return float(value)
+                if isinstance(value, str):
+                    cleaned = value.replace(",", "").replace("$", "").strip()
+                    return float(cleaned) if cleaned else None
                 return None
-            if isinstance(value, (int, float)):
-                return float(value)
-            if isinstance(value, str):
-                cleaned = value.replace(",", "").strip()
-                return float(cleaned) if cleaned else None
-            return None
+            except (TypeError, ValueError):
+                return None
+
 
         min_value = _to_float(salary_min)
         max_value = _to_float(salary_max)

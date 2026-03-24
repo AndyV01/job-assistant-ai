@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL?.trim() || "http://localhost:8000";
+const API_BASE_URL = "https://job-assistant-ai-6g1q.onrender.com";
 
 const quickTips = [
   "Incluye verbos de impacto en tu experiencia.",
