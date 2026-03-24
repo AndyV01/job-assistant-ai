@@ -91,6 +91,7 @@ class CVOptimizerAgent:
             if not chunks:
                 chunks = splitter.create_documents([self._get_mock_cv()])
 
+
             self._build_vectorstore(chunks)
             print(f"✅ CV cargado desde upload: {len(text)} caracteres")
             print("✅ Vectorstore del CV actualizado")
@@ -98,6 +99,7 @@ class CVOptimizerAgent:
             print(f"⚠️ Error procesando CV desde texto ({e}), usando fallback mínimo")
             self.cv_text = text or self._get_mock_cv()
             self.vectorstore = SimpleVectorStore([Document(page_content=self.cv_text)])
+
     
     def _get_mock_cv(self) -> str:
         return "CV no disponible. Analizá el trabajo de forma general sin comparar con un CV específico."
