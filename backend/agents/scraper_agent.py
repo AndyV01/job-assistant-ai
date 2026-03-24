@@ -38,7 +38,7 @@ class ScraperAgent:
             if jobs:
                 return jobs
 
-        print("⚠️ Sin resultados en APIs, usando mock")
+        print("⚠️ Sin resultados en APIs")
         return self._get_mock_jobs(keywords)
 
     def _search_adzuna(self, keywords: str, location: str) -> List[Dict]:
@@ -85,11 +85,7 @@ class ScraperAgent:
                     salary_min = job.get("salary_min")
                     salary_max = job.get("salary_max")
 
-                    salary = ""
-                    if salary_min and salary_max:
-                        salary = f"${salary_min:,.0f} - ${salary_max:,.0f}"
-                    elif salary_min:
-                        salary = f"Desde ${salary_min:,.0f}"
+                    salary = self._format_salary(salary_min, salary_max)
 
                     jobs.append({
                         "title": title,
@@ -169,11 +165,7 @@ class ScraperAgent:
                     salary_min = job.get("job_min_salary")
                     salary_max = job.get("job_max_salary")
 
-                    salary = ""
-                    if salary_min and salary_max:
-                        salary = f"${salary_min:,.0f} - ${salary_max:,.0f}"
-                    elif salary_min:
-                        salary = f"Desde ${salary_min:,.0f}"
+                    salary = self._format_salary(salary_min, salary_max)
 
                     jobs.append({
                         "title": title,
@@ -204,6 +196,26 @@ class ScraperAgent:
         text_lower = text.lower()
         found = [kw for kw in tech if kw in text_lower]
         return found[:5] if found else ['javascript', 'html', 'css']
+
+    def _format_salary(self, salary_min, salary_max) -> str:
+        def _to_float(value):
+            if value is None:
+                return None
+            if isinstance(value, (int, float)):
+                return float(value)
+            if isinstance(value, str):
+                cleaned = value.replace(",", "").strip()
+                return float(cleaned) if cleaned else None
+            return None
+
+        min_value = _to_float(salary_min)
+        max_value = _to_float(salary_max)
+
+        if min_value and max_value:
+            return f"${min_value:,.0f} - ${max_value:,.0f}"
+        if min_value:
+            return f"Desde ${min_value:,.0f}"
+        return ""
 
     def _get_mock_jobs(self, keywords: str) -> List[Dict]:
         return []
