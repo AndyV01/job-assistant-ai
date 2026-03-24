@@ -24,6 +24,7 @@ class JobAssistantState(TypedDict):
     cv_optimization: Dict
     error: str
     intentos: int
+    cv_text: str
 
 scraper = ScraperAgent()
 analyzer = AnalyzerAgent()
@@ -82,7 +83,10 @@ def nodo_cv_optimizer(state: JobAssistantState):
             key=lambda x: x["match_score"],
             reverse=True
         )[0]
-        cv = cv_optimizer.optimize_for_job(mejor_trabajo)
+        cv = cv_optimizer.optimize_for_job(
+            mejor_trabajo,
+            state.get("cv_text", "")
+        )    
         return {"cv_optimization": cv, "error": ""}
     except Exception as e:
         from langsmith import get_current_run_tree

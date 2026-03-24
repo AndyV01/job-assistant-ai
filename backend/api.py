@@ -8,7 +8,12 @@ from pydantic import BaseModel
 from fastapi.responses import JSONResponse
 from langsmith import traceable
 from dotenv import load_dotenv
-from backend.orchestrator import app as langgraph_app
+from PyPDF2 import PdfReader
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.schema import Document
+from langchain_community.embeddings import FakeEmbeddings
+from langchain_community.vectorstores import FAISS
+from backend.orchestrator import app as langgraph_app, cv_optimizer
 import shutil
 import os
 
@@ -21,7 +26,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
-        "https://job-assistant-ai-6g1q.onrender.com"
+        "https://job-assistant-ai-6g1q.onrender.com",
+        "https://job-assistant-ai-tzle.vercel.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -80,7 +86,7 @@ def search_jobs(request: SearchRequest,  req: Request):
             "analyses": [],
             "cv_optimization": {},
             "error": "",
-            "intentos": 0
+            "intentos": 0,
         },
         config={
             "configurable": {"thread_id": thread_id},
@@ -126,11 +132,31 @@ async def upload_cv(file: UploadFile = File(...)):
         if not file.filename.endswith('.pdf'):
             return {"success": False, "error": "Solo se aceptan archivos PDF"}
 
-        cv_path = "../data/mi_cv.pdf"
-        os.makedirs("../data", exist_ok=True)
+        cv_path = "/tmp/mi_cv.pdf"
 
         with open(cv_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
+          shutil.copyfileobj(file.file, buffer)
+
+        # convertir a texto
+        reader = PdfReader(cv_path)
+        text = ""
+
+        for page in reader.pages:
+         text += page.extract_text() or ""
+
+        # Dividir en chunks
+        splitter = RecursiveCharacterTextSplitter(
+        chunk_size=500,
+        chunk_overlap=50
+        )
+        chunks = splitter.split_text(text)
+
+        #  Convertir a documentos
+        docs = [Document(page_content=chunk) for chunk in chunks]
+
+         # Guardar en vectorstore (ESTO ES LO CLAVE)
+        embeddings = FakeEmbeddings(size=384)
+        cv_optimizer.vectorstore.FAISS.from_documents(docs, embeddings)
 
         return {
             "success": True,
