@@ -225,7 +225,36 @@ class ScraperAgent:
         return ""
 
     def _get_mock_jobs(self, keywords: str) -> List[Dict]:
-        return []
+        kw = keywords.strip() or "Frontend Developer"
+        return [
+            {
+                "title": f"{kw} - React",
+                "company": "Startup LATAM (Mock)",
+                "location": "Remoto",
+                "link": "https://example.com/jobs/frontend-react",
+                "description": "Buscamos perfil frontend con React, TypeScript, testing y trabajo con APIs REST.",
+                "salary": "",
+                "requirements": ["react", "typescript", "javascript", "git", "api"]
+            },
+            {
+                "title": f"{kw} - Next.js",
+                "company": "Producto SaaS (Mock)",
+                "location": "Argentina",
+                "link": "https://example.com/jobs/frontend-nextjs",
+                "description": "Rol frontend para construir interfaces con Next.js, Tailwind y buenas prácticas de UX.",
+                "salary": "",
+                "requirements": ["next.js", "react", "tailwind", "typescript", "ux"]
+            },
+            {
+                "title": f"{kw} - Fullstack JS",
+                "company": "Consultora Tech (Mock)",
+                "location": "Híbrido",
+                "link": "https://example.com/jobs/fullstack-js",
+                "description": "Proyecto fullstack con Node.js, React y MongoDB. Valoramos CI/CD y comunicación.",
+                "salary": "",
+                "requirements": ["node.js", "react", "mongodb", "ci/cd", "javascript"]
+            }
+        ]
 
 
 if __name__ == "__main__":
