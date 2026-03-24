@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse
 from langsmith import traceable
 from dotenv import load_dotenv
 from PyPDF2 import PdfReader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.text_splitters import RecursiveCharacterTextSplitter
 from langchain.schema import Document
 from langchain_community.embeddings import FakeEmbeddings
 from langchain_community.vectorstores import FAISS
