@@ -5,9 +5,9 @@ Orquestador con LangGraph
 from langgraph.graph import StateGraph, END 
 from langgraph.checkpoint.memory import MemorySaver
 from typing import TypedDict, List, Dict
-from agents.scraper_agent import ScraperAgent
-from agents.analyzer_agent import AnalyzerAgent
-from agents.cv_optimizer_agent import CVOptimizerAgent
+from backend.agents.scraper_agent import ScraperAgent
+from backend.agents.analyzer_agent import AnalyzerAgent
+from backend.agents.cv_optimizer_agent import CVOptimizerAgent
 # metricas y debuggear agentes
 from langsmith import traceable
 import os
