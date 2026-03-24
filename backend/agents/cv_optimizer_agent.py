@@ -27,7 +27,7 @@ class CVOptimizerAgent:
         self.cv_text = ""
         self.vectorstore = None #FASS con los chunks
         # Cargar CV
-        self._load_cv()
+        #self._load_cv()
         
         print("✅ CV cargado y listo")
     
@@ -76,7 +76,14 @@ class CVOptimizerAgent:
         required_skills = job_analysis.get('tech_skills', [])
         seniority = job_analysis.get('seniority_level', '')
         
-        
+        if not self.vectorstore:
+           return {
+             "job_title": job_title,
+             "matching_skills": [],
+             "missing_skills": [],
+             "recommendations": "Primero subí tu CV",
+             "relevant_experience": ""
+          }
        # RAG - busca solo los chunks relevantes del CV para este trabajo
         query = f"{job_title} {' '.join(required_skills)}"
         relevant_chunks = self.vectorstore.similarity_search(query, k=3)  # ← trae los 3 chunks más relevantes
