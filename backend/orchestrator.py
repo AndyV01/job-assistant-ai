@@ -40,6 +40,12 @@ def nodo_scraper(state: JobAssistantState):
             state["keywords"],
             state["location"]
         )
+        if not jobs:
+            return {
+                "jobs": [],
+                "error": "No se encontraron ofertas para esa búsqueda.",
+                "intentos": state["intentos"] + 1
+            }
         return {"jobs": jobs, "error": "", "intentos": state["intentos"] + 1}
     except Exception as e:
         from langsmith import get_current_run_tree

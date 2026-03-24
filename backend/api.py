@@ -9,10 +9,6 @@ from fastapi.responses import JSONResponse
 from langsmith import traceable
 from dotenv import load_dotenv
 from PyPDF2 import PdfReader
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_core.documents import Document
-from langchain_community.embeddings import FakeEmbeddings
-from langchain_community.vectorstores import FAISS
 from backend.orchestrator import app as langgraph_app, cv_optimizer
 import shutil
 import os
@@ -76,12 +72,21 @@ def search_jobs(request: SearchRequest,  req: Request):
     Endpoint principal: busca trabajos y optimiza CV
     """
     try:
+        keywords = request.keywords.strip()
+        location = request.location.strip() or "Brasil"
+
+        if not keywords:
+            return {
+                "success": False,
+                "error": "Debes ingresar al menos una palabra clave para buscar empleos."
+            }
+
         thread_id = req.client.host
 
         results = langgraph_app.invoke(
             {
-            "keywords": request.keywords,
-            "location": request.location,
+            "keywords": keywords,
+            "location": location,
             "jobs": [],
             "analyses": [],
             "cv_optimization": {},
@@ -90,11 +95,11 @@ def search_jobs(request: SearchRequest,  req: Request):
         },
         config={
             "configurable": {"thread_id": thread_id},
-             "run_name": f"search-{request.keywords}-{request.location}",
-                "tags": ["api", request.location.lower()],
+             "run_name": f"search-{keywords}-{location}",
+                "tags": ["api", location.lower()],
                 "metadata": {
-                    "keywords": request.keywords,
-                    "location": request.location,
+                    "keywords": keywords,
+                    "location": location,
                     "user_ip": thread_id
                 }
             }
@@ -129,7 +134,8 @@ async def upload_cv(file: UploadFile = File(...)):
     Sube y procesa un CV en PDF
     """
     try:
-        if not file.filename.endswith('.pdf'):
+        filename = file.filename or ""
+        if not filename.lower().endswith('.pdf'):
             return {"success": False, "error": "Solo se aceptan archivos PDF"}
 
         cv_path = "/tmp/mi_cv.pdf"
@@ -142,21 +148,22 @@ async def upload_cv(file: UploadFile = File(...)):
         text = ""
 
         for page in reader.pages:
-         text += page.extract_text() or ""
+            text += page.extract_text() or ""
 
-        # Dividir en chunks
-        splitter = RecursiveCharacterTextSplitter(
-        chunk_size=500,
-        chunk_overlap=50
-        )
-        chunks = splitter.split_text(text)
+        text = text.strip()
+        if not text:
+            text = (
+                "CV subido sin texto extraíble. "
+                "Es posible que el PDF sea una imagen escaneada."
+            )
 
-        #  Convertir a documentos
-        docs = [Document(page_content=chunk) for chunk in chunks]
+        if cv_optimizer is None:
+            return {
+                "success": False,
+                "error": "El optimizador de CV no está inicializado en el backend."
+            }
 
-         # Guardar en vectorstore (ESTO ES LO CLAVE)
-        embeddings = FakeEmbeddings(size=384)
-        cv_optimizer.vectorstore = FAISS.from_documents(docs, embeddings)
+        cv_optimizer.load_cv_from_text(text)
 
         return {
             "success": True,
