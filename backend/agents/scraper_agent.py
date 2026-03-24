@@ -203,6 +203,7 @@ class ScraperAgent:
 
     def _format_salary(self, salary_min, salary_max) -> str:
         def _to_float(value):
+
             try:
                 if value is None:
                     return None
@@ -214,6 +215,7 @@ class ScraperAgent:
                 return None
             except (TypeError, ValueError):
                 return None
+
 
         min_value = _to_float(salary_min)
         max_value = _to_float(salary_max)
