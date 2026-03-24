@@ -156,7 +156,7 @@ async def upload_cv(file: UploadFile = File(...)):
 
          # Guardar en vectorstore (ESTO ES LO CLAVE)
         embeddings = FakeEmbeddings(size=384)
-        cv_optimizer.vectorstore.FAISS.from_documents(docs, embeddings)
+        cv_optimizer.vectorstore = FAISS.from_documents(docs, embeddings)
 
         return {
             "success": True,
