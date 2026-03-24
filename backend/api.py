@@ -16,6 +16,7 @@ import os
 load_dotenv()
 
 app = FastAPI(title="Job Assistant AI API")
+CV_TEXT_PATH = "/tmp/mi_cv.txt"
 
 # Configurar CORS para permitir requests desde el frontend
 app.add_middleware(
@@ -83,6 +84,14 @@ def search_jobs(request: SearchRequest,  req: Request):
 
         thread_id = req.client.host
 
+        persisted_cv_text = ""
+        if os.path.exists(CV_TEXT_PATH):
+            try:
+                with open(CV_TEXT_PATH, "r", encoding="utf-8") as f:
+                    persisted_cv_text = f.read().strip()
+            except Exception:
+                persisted_cv_text = ""
+
         results = langgraph_app.invoke(
             {
             "keywords": keywords,
@@ -92,6 +101,7 @@ def search_jobs(request: SearchRequest,  req: Request):
             "cv_optimization": {},
             "error": "",
             "intentos": 0,
+            "cv_text": persisted_cv_text,
         },
         config={
             "configurable": {"thread_id": thread_id},
@@ -156,6 +166,12 @@ async def upload_cv(file: UploadFile = File(...)):
                 "CV subido sin texto extraíble. "
                 "Es posible que el PDF sea una imagen escaneada."
             )
+
+        try:
+            with open(CV_TEXT_PATH, "w", encoding="utf-8") as f:
+                f.write(text)
+        except Exception as e:
+            print(f"⚠️ No se pudo persistir CV en disco: {e}")
 
         if cv_optimizer is None:
             return {
