@@ -10,7 +10,7 @@ from langsmith import traceable
 from dotenv import load_dotenv
 from PyPDF2 import PdfReader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain.schema import Document
+from langchain_core.documents import Document
 from langchain_community.embeddings import FakeEmbeddings
 from langchain_community.vectorstores import FAISS
 from backend.orchestrator import app as langgraph_app, cv_optimizer
