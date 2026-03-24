@@ -10,6 +10,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter #divide en c
 from langchain_community.embeddings import FakeEmbeddings #vectoriza gratis
 from langchain_community.vectorstores import FAISS #guarda los vectores en memora
 from langchain_core.prompts import ChatPromptTemplate #arma el prompt de forma estructurada
+from langchain_core.documents import Document
 from langchain_groq import ChatGroq #conecta con Groq LLM
 
 from groq import Groq
@@ -17,6 +18,23 @@ from typing import Dict, List
 import os
 from dotenv import load_dotenv
 load_dotenv()
+
+
+class SimpleVectorStore:
+    """Fallback liviano cuando FAISS no está disponible en runtime."""
+    def __init__(self, documents: List[Document]):
+        self.documents = documents
+
+    def similarity_search(self, query: str, k: int = 3) -> List[Document]:
+        query_terms = set((query or "").lower().split())
+
+        def score(doc: Document) -> int:
+            content_terms = set(doc.page_content.lower().split())
+            return len(query_terms & content_terms)
+
+        ranked = sorted(self.documents, key=score, reverse=True)
+        return ranked[:k] if ranked else []
+
 
 class CVOptimizerAgent:
     def __init__(self, cv_path: str = "../../data/mi_cv.pdf"):
@@ -72,8 +90,14 @@ class CVOptimizerAgent:
         if not chunks:
             chunks = splitter.create_documents([self._get_mock_cv()])
 
-        embeddings = FakeEmbeddings(size=384)
-        self.vectorstore = FAISS.from_documents(chunks, embeddings)
+        try:
+            embeddings = FakeEmbeddings(size=384)
+            self.vectorstore = FAISS.from_documents(chunks, embeddings)
+            print("✅ Vectorstore FAISS actualizado")
+        except Exception as e:
+            print(f"⚠️ FAISS no disponible ({e}), usando fallback simple en memoria")
+            self.vectorstore = SimpleVectorStore(chunks)
+
         print(f"✅ CV cargado desde upload: {len(text)} caracteres")
         print("✅ Vectorstore del CV actualizado")
     
