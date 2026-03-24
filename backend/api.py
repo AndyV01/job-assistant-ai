@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from fastapi.responses import JSONResponse
 from langsmith import traceable
 from dotenv import load_dotenv
-from orchestrator import app as langgraph_app
+from backend.orchestrator import app as langgraph_app
 import shutil
 import os
 
@@ -21,7 +21,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
-        "https://job-assistant-ai-tzle.vercel.app"
+        "https://job-assistant-ai-6g1q.onrender.com"
     ],
     allow_credentials=True,
     allow_methods=["*"],
