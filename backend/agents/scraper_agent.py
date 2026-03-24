@@ -39,7 +39,7 @@ class ScraperAgent:
                 return jobs
 
         print("⚠️ Sin resultados en APIs")
-        return self._get_mock_jobs(keywords)
+        return []
 
     def _search_adzuna(self, keywords: str, location: str) -> List[Dict]:
         """

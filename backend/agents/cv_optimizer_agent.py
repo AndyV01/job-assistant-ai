@@ -8,7 +8,10 @@ Usa Groq API (Llama 3.3) para generar recomendaciones.
 from langchain_community.document_loaders import PyPDFLoader #lee el PDF
 from langchain_text_splitters import RecursiveCharacterTextSplitter #divide en chunks
 from langchain_community.embeddings import FakeEmbeddings #vectoriza gratis
-from langchain_community.vectorstores import FAISS #guarda los vectores en memora
+try:
+    from langchain_community.vectorstores import FAISS  # guarda los vectores en memoria
+except Exception:
+    FAISS = None
 from langchain_core.prompts import ChatPromptTemplate #arma el prompt de forma estructurada
 from langchain_core.documents import Document
 from langchain_groq import ChatGroq #conecta con Groq LLM
@@ -71,10 +74,7 @@ class CVOptimizerAgent:
          )
         chunks = splitter.create_documents([self.cv_text])
 
-        embeddings = FakeEmbeddings(size=384)
-
-        self.vectorstore = FAISS.from_documents(chunks, embeddings)
-        print("✅ RAG inicializado con FAISS")
+        self._build_vectorstore(chunks)
     
     def load_cv_from_text(self, text: str):
         """
@@ -90,13 +90,7 @@ class CVOptimizerAgent:
         if not chunks:
             chunks = splitter.create_documents([self._get_mock_cv()])
 
-        try:
-            embeddings = FakeEmbeddings(size=384)
-            self.vectorstore = FAISS.from_documents(chunks, embeddings)
-            print("✅ Vectorstore FAISS actualizado")
-        except Exception as e:
-            print(f"⚠️ FAISS no disponible ({e}), usando fallback simple en memoria")
-            self.vectorstore = SimpleVectorStore(chunks)
+        self._build_vectorstore(chunks)
 
         print(f"✅ CV cargado desde upload: {len(text)} caracteres")
         print("✅ Vectorstore del CV actualizado")
@@ -104,10 +98,24 @@ class CVOptimizerAgent:
     def _get_mock_cv(self) -> str:
         return "CV no disponible. Analizá el trabajo de forma general sin comparar con un CV específico."
     
-    def optimize_for_job(self, job_analysis: Dict) -> Dict:
+    def _build_vectorstore(self, chunks: List[Document]):
+        try:
+            if FAISS is None:
+                raise RuntimeError("FAISS no pudo importarse en este runtime")
+            embeddings = FakeEmbeddings(size=384)
+            self.vectorstore = FAISS.from_documents(chunks, embeddings)
+            print("✅ Vectorstore FAISS actualizado")
+        except Exception as e:
+            print(f"⚠️ FAISS no disponible ({e}), usando fallback simple en memoria")
+            self.vectorstore = SimpleVectorStore(chunks)
+
+    def optimize_for_job(self, job_analysis: Dict, cv_text: str = "") -> Dict:
         """
         Optimiza el CV según los requisitos del trabajo usando Groq
         """
+        if cv_text and cv_text.strip():
+            self.load_cv_from_text(cv_text.strip())
+
         job_title = job_analysis.get('job_title', '')
         required_skills = job_analysis.get('tech_skills', [])
         seniority = job_analysis.get('seniority_level', '')
