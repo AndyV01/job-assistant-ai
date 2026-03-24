@@ -80,20 +80,26 @@ class CVOptimizerAgent:
         """
         Carga el CV desde texto directo (para uploads)
         """
-        self.cv_text = text
-        splitter = RecursiveCharacterTextSplitter(
-            chunk_size=500,
-            chunk_overlap=50
-        )
-        chunks = splitter.create_documents([self.cv_text]) if self.cv_text else []
+        try:
+            self.cv_text = text
+            splitter = RecursiveCharacterTextSplitter(
+                chunk_size=500,
+                chunk_overlap=50
+            )
+            chunks = splitter.create_documents([self.cv_text]) if self.cv_text else []
 
-        if not chunks:
-            chunks = splitter.create_documents([self._get_mock_cv()])
+            if not chunks:
+                chunks = splitter.create_documents([self._get_mock_cv()])
 
-        self._build_vectorstore(chunks)
 
-        print(f"✅ CV cargado desde upload: {len(text)} caracteres")
-        print("✅ Vectorstore del CV actualizado")
+            self._build_vectorstore(chunks)
+            print(f"✅ CV cargado desde upload: {len(text)} caracteres")
+            print("✅ Vectorstore del CV actualizado")
+        except Exception as e:
+            print(f"⚠️ Error procesando CV desde texto ({e}), usando fallback mínimo")
+            self.cv_text = text or self._get_mock_cv()
+            self.vectorstore = SimpleVectorStore([Document(page_content=self.cv_text)])
+
     
     def _get_mock_cv(self) -> str:
         return "CV no disponible. Analizá el trabajo de forma general sin comparar con un CV específico."
