@@ -16,9 +16,6 @@ langsmith==0.3.43
 # LLMs
 groq==0.24.0
 
-# Vector store
-faiss-cpu==1.7.4
-
 # FastAPI / utils
 python-dotenv==1.1.0
 requests==2.32.5
