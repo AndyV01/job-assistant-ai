@@ -84,6 +84,9 @@ def nodo_analyzer(state: JobAssistantState):
 def nodo_cv_optimizer(state: JobAssistantState):
     print("PASO 3: Optimizando CV...")
     try:
+        if not state.get("analyses"):
+            return {"cv_optimization": {}}
+            
         mejor_trabajo = sorted(
             state["analyses"],
             key=lambda x: x["match_score"],
@@ -92,19 +95,13 @@ def nodo_cv_optimizer(state: JobAssistantState):
         cv = cv_optimizer.optimize_for_job(
             mejor_trabajo,
             state.get("cv_text", "")
-        )    
+        )
         return {"cv_optimization": cv, "error": ""}
     except Exception as e:
-        from langsmith import get_current_run_tree
-        run = get_current_run_tree()
-        if run:
-            run.add_metadata({
-                "error_type": type(e).__name__,
-                "error_message": str(e),
-                "analyses_disponibles": len(state.get("analyses", []))
-            })
-            run.add_tags(["cv-optimizer-error"])
-        return {"cv_optimization": {}, "error": str(e)}
+        print(f"⚠️ CV Optimizer falló (no crítico): {e}")
+        
+        return {"cv_optimization": {}}
+
 
 
 @traceable(
@@ -141,13 +138,13 @@ def nodo_error(state: JobAssistantState):
 # edges condicionales
 def decidir_tras_scraper(state: JobAssistantState):
     if state["error"] or not state["jobs"]:
-        return "error"
+        return "node_error"
     return "analyzer"
 
 
 def decidir_tras_analyzer(state: JobAssistantState):
     if state["error"] or not state["analyses"]:
-        return "error"
+        return "node_error"
     promedio = sum(a["match_score"] for a in state["analyses"]) / len(state["analyses"])
     
     # Máximo 3 intentos para evitar loop infinito
@@ -164,7 +161,7 @@ grafo = StateGraph(JobAssistantState)
 grafo.add_node("scraper", nodo_scraper)
 grafo.add_node("analyzer", nodo_analyzer)
 grafo.add_node("cv_optimizer", nodo_cv_optimizer)
-grafo.add_node("error", nodo_error)
+grafo.add_node("node_error", nodo_error)
 
 # Por dónde empieza
 grafo.set_entry_point("scraper")
@@ -175,7 +172,7 @@ grafo.add_conditional_edges("analyzer", decidir_tras_analyzer)
 
 # Edges fijos
 grafo.add_edge("cv_optimizer", END)
-grafo.add_edge("error", END)
+grafo.add_edge("node_error", END)
  
 # memoria persistente 
 checkpointer = checkpointer = MemorySaver()

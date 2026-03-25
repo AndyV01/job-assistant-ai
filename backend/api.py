@@ -63,23 +63,15 @@ async def options_search(request: Request):
     )
 
 @app.post("/api/search")
-@traceable(
-    name="API - Search Jobs Request",
-    tags=["api", "production"],
-    metadata={"endpoint": "/api/search"}
-)
-def search_jobs(request: SearchRequest,  req: Request):
-    """
-    Endpoint principal: busca trabajos y optimiza CV
-    """
+def search_jobs(request: SearchRequest, req: Request):
     try:
         keywords = request.keywords.strip()
-        location = request.location.strip() or "Brasil"
+        location = request.location.strip() or "Argentina"
 
         if not keywords:
             return {
                 "success": False,
-                "error": "Debes ingresar al menos una palabra clave para buscar empleos."
+                "error": "Debes ingresar al menos una palabra clave."
             }
 
         thread_id = req.client.host
@@ -94,18 +86,18 @@ def search_jobs(request: SearchRequest,  req: Request):
 
         results = langgraph_app.invoke(
             {
-            "keywords": keywords,
-            "location": location,
-            "jobs": [],
-            "analyses": [],
-            "cv_optimization": {},
-            "error": "",
-            "intentos": 0,
-            "cv_text": persisted_cv_text,
-        },
-        config={
-            "configurable": {"thread_id": thread_id},
-             "run_name": f"search-{keywords}-{location}",
+                "keywords": keywords,
+                "location": location,
+                "jobs": [],
+                "analyses": [],
+                "cv_optimization": {},
+                "error": "",
+                "intentos": 0,
+                "cv_text": persisted_cv_text,
+            },
+            config={
+                "configurable": {"thread_id": thread_id},
+                "run_name": f"search-{keywords}-{location}",
                 "tags": ["api", location.lower()],
                 "metadata": {
                     "keywords": keywords,
@@ -115,13 +107,14 @@ def search_jobs(request: SearchRequest,  req: Request):
             }
         )
 
-        if results.get("error"):
+        analyses = results.get("analyses", [])
+
+        # ✅ Solo falla si NO hay analyses — el error del cv_optimizer no bloquea
+        if not analyses:
             return {
                 "success": False,
-                "error": results["error"]
+                "error": results.get("error") or "No se encontraron resultados."
             }
-
-        analyses = results.get("analyses", [])
 
         return {
             "success": True,
@@ -138,17 +131,25 @@ def search_jobs(request: SearchRequest,  req: Request):
             "error": str(e)
         }
 
+    except Exception as e:
+        print(f"❌ Error: {e}")
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
 @app.post("/api/upload-cv")
 async def upload_cv(file: UploadFile = File(...)):
     """
     Sube y procesa un CV en PDF
     """
     try:
+        os.makedirs("uploads", exist_ok=True)
         filename = file.filename or ""
         if not filename.lower().endswith('.pdf'):
             return {"success": False, "error": "Solo se aceptan archivos PDF"}
 
-        cv_path = "/tmp/mi_cv.pdf"
+        cv_path = os.path.join("uploads", "mi_cv.pdf")
 
         with open(cv_path, "wb") as buffer:
           shutil.copyfileobj(file.file, buffer)

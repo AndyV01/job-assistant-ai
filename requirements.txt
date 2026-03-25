@@ -1,18 +1,33 @@
 fastapi==0.109.0
 uvicorn[standard]==0.27.0
 python-multipart==0.0.9
-langchain==1.2.10
-langchain-community==0.4.1
-langchain-core==1.2.15
-langchain-groq
-langgraph
-python-dotenv==1.2.1
-beautifulsoup4==4.12.3
+
+# LangChain — versiones reales y compatibles entre sí
+langchain==0.3.25
+langchain-community==0.3.24
+langchain-core==0.3.60
+langchain-text-splitters==0.3.8
+langchain-groq==0.3.2
+
+# LangGraph + LangSmith
+langgraph==0.3.21
+langsmith==0.3.43
+
+# LLMs
+groq==0.24.0
+
+# Vector store
+faiss-cpu==1.7.4
+
+# FastAPI / utils
+python-dotenv==1.1.0
 requests==2.32.5
+beautifulsoup4==4.12.3
+python-multipart==0.0.9
+
+# PDF
 pypdf==6.7.3
-groq
-faiss-cpu
-langsmith
-pydantic==2.12.5
-pydantic-core==2.41.5
-PyPDF2
+PyPDF2==3.0.1
+
+# Pydantic
+pydantic-core==2.33.2
