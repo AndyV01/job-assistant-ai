@@ -95,16 +95,19 @@ class CVOptimizerAgent:
         return "CV no disponible. Analizá el trabajo de forma general sin comparar con un CV específico."
 
     def _build_vectorstore(self, chunks: List[Document]):
-        # ✅ FIX: Usa FAISS_AVAILABLE en lugar de comparar FAISS con None
+        if not FAISS_AVAILABLE or FAISS is None:
+           print("⚠️ FAISS no disponible, usando fallback")
+           self.vectorstore = SimpleVectorStore(chunks)
+           return
+
         try:
-            if not FAISS_AVAILABLE:
-                raise RuntimeError("FAISS no disponible en este runtime")
-            embeddings = FakeEmbeddings(size=384)
-            self.vectorstore = FAISS.from_documents(chunks, embeddings)
-            print("✅ Vectorstore FAISS actualizado")
+          embeddings = FakeEmbeddings(size=384)
+          self.vectorstore = FAISS.from_documents(chunks, embeddings)
+          print("✅ Vectorstore FAISS actualizado")
+
         except Exception as e:
-            print(f"⚠️ FAISS no disponible ({e}), usando fallback simple en memoria")
-            self.vectorstore = SimpleVectorStore(chunks)
+          print(f"⚠️ Error usando FAISS: {e}")
+          self.vectorstore = SimpleVectorStore(chunks)
 
     def optimize_for_job(self, job_analysis: Dict, cv_text: str = "") -> Dict:
         if cv_text and cv_text.strip():
