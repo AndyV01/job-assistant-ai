@@ -17,6 +17,7 @@ env/
 Thumbs.db
 
 # Data
+data/
 data/vectorstore/
 *.db
 *.sqlite

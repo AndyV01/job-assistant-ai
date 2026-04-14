@@ -115,32 +115,6 @@ Cada ejecución del pipeline queda registrada con:
 - **Tags por entorno** — `api`, `production`, nombre de la location.
 - **Errores con contexto** — qué nodo falló, cuántos jobs se encontraron, cuántos análisis se generaron.
 
-### Nodos trackeados
-
-| Nodo | Trace name | Tags en error |
-|------|-----------|---------------|
-| `nodo_scraper` | `Scraper - Buscar ofertas` | `scraper-error` |
-| `nodo_analyzer` | `Analyzer - Analizar ofertas` | `analyzer-error` |
-| `nodo_cv_optimizer` | `CV Optimizer - Optimizar CV` | `cv-optimizer-error` |
-| `nodo_error` | `Error Handler - Pipeline Failed` | `pipeline-error`, `intentos-N` |
-| Request API | `API - Search Jobs Request` | `api`, `production` |
-
-### Metadata capturada en errores
-
-Cuando cualquier nodo falla, LangSmith registra automáticamente:
-
-```json
-{
-  "error_type": "ExceptionType",
-  "error_message": "descripción del error",
-  "fallo_en": "scraper | analyzer | cv_optimizer",
-  "intentos_realizados": 2,
-  "jobs_encontrados": 5,
-  "analyses_generados": 0,
-  "keywords": "Frontend Developer",
-  "location": "Argentina"
-}
-```
 
 ## 🚀 Ejecución local
 
@@ -236,9 +210,8 @@ El `CVOptimizerAgent` implementa **RAG (Retrieval-Augmented Generation)** real:
 
 1. Carga el CV desde PDF con `PyPDFLoader`.
 2. Divide el texto en chunks con `RecursiveCharacterTextSplitter`.
-3. Vectoriza los chunks con `FakeEmbeddings` + **FAISS**.
-4. En cada análisis, busca los 3 chunks más relevantes para el trabajo.
-5. Pasa esos chunks al LLM (Groq Llama 3.3) para generar recomendaciones personalizadas.
+3. En cada análisis, busca los 3 chunks más relevantes para el trabajo.
+4. Pasa esos chunks al LLM (Groq Llama 3.3) para generar recomendaciones personalizadas.
 
 ---
 
@@ -327,8 +300,6 @@ job-assistant-ai/
 │   ├── package.json
 │   ├── tailwind.config.js
 │   └── vite.config.js
-├── data/
-│   └── mi_cv.pdf
 └── README.md
 ```
 
