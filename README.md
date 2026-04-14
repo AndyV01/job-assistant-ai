@@ -15,6 +15,9 @@ Asistente de búsqueda laboral potenciado por IA con arquitectura multi-agente. 
 
 ---
 
+<img width="1673" height="939" alt="Estación de trabajo nocturna con luces de ciudad" src="https://github.com/user-attachments/assets/0b356302-26a3-4bfd-87f2-e31fdcccaa2f" />
+
+
 ## 🌐 Demo en producción
 
 - **Frontend (Vercel):** https://job-assistant-ai-tzle.vercel.app/
