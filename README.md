@@ -167,13 +167,14 @@ VITE_API_URL=http://localhost:8000
 ## 🧪 Uso
 
 1. Abre la UI en `http://localhost:5173` (o la demo de Vercel).
-2. Ingresa keywords del rol (ej: `Backend Developer`).
-3. Define ubicación (ej: `Brasil`).
-4. Ejecuta la búsqueda.
-5. Revisa:
+2. **Subí tu CV en formato PDF** desde el formulario.
+3. Ingresá keywords del rol (ej: `Backend Developer`).
+4. Definí ubicación (ej: `Brasil`).
+5. Ejecutá la búsqueda.
    - Vacantes ordenadas por match.
    - Skills detectadas por oferta.
    - Recomendaciones de optimización de CV.
+  
 
 ### Endpoints principales
 
@@ -311,7 +312,6 @@ job-assistant-ai/
 **Andres Vallarino**
 
 - GitHub: [@AndyV01](https://github.com/AndyV01)
-- Email: andyduffdj25@gmail.com
 - Portafolio: https://portfolio-nextjs-nine-lac.vercel.app/
 
 Si te interesa colaborar o proponer mejoras, abre un issue o PR. 🚀
